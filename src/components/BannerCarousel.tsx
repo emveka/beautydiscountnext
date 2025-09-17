@@ -114,6 +114,7 @@ export default function BannerCarousel({
                 // 🎯 Mobile: contain (toute l'image visible) | ≥ sm: cover (hero)
                 className="object-contain sm:object-cover object-center"
                 priority={index === 0}
+                fetchPriority={index === 0 ? "high" : undefined}   // ✅ ajout clé
                 sizes="100vw"
               />
             </div>
