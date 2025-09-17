@@ -24,12 +24,11 @@ interface MobileMenuItem {
 }
 
 interface MobileMenuNavigationProps {
-  onLinkClick: () => void; // Callback pour fermer le menu quand on clique sur un lien
+  onLinkClick: () => void;
 }
 
 /**
- * Configuration des catégories - Identique au MenuNavigation principal
- * Simplifié pour correspondre à votre thème beauté
+ * 📱 MOBILE OPTIMIZED: Configuration des catégories compactées
  */
 const lissagesMenu: MenuCategory[] = [
   {
@@ -39,30 +38,28 @@ const lissagesMenu: MenuCategory[] = [
       { label: "Lissage au Tanin", href: "/categories/lissages/lissage-au-tanin" },
       { label: "Kits Mini Lissage", href: "/categories/lissages/kits-mini-lissage" },
       { label: "Botox Capillaire", href: "/categories/lissages/botox-capillaire" },
-      { label: "Lisseurs", href: "/categories/lissages/botox-capillaire" },
-      { label: "Pack Lissages", href: "/categories/lissages/botox-capillaire" },
+      { label: "Lisseurs", href: "/categories/lissages/lisseurs" },
+      { label: "Pack Lissages", href: "/categories/lissages/pack-lissages" },
     ]
   },
-  
 ];
 
 const soinsCapillairesMenu: MenuCategory[] = [
   {
     title: "Soins Capillaires",
     items: [
-      { label: "Shampoings", href: "/categories/soins-capillaires/shampoing-sec" },
-      { label: "Masques", href: "/categories/soins-capillaires/shampoing-hydratant" },
-      { label: "Huiles et Sérums", href: "/categories/soins-capillaires/shampoing-anti-chute" },
-      { label: "Sprays Protecteurs", href: "/categories/soins-capillaires/shampoing-anti-chute" },
-      { label: "Packs soins capillaires", href: "/categories/soins-capillaires/shampoing-anti-chute" },
-      
+      { label: "Shampoings", href: "/categories/soins-capillaires/shampoings" },
+      { label: "Masques", href: "/categories/soins-capillaires/masques" },
+      { label: "Huiles et Sérums", href: "/categories/soins-capillaires/huiles-serums" },
+      { label: "Sprays Protecteurs", href: "/categories/soins-capillaires/sprays-protecteurs" },
+      { label: "Packs soins", href: "/categories/soins-capillaires/packs-soins" },
     ]
   },
 ];
 
 const cosmetiqueCoreenMenu: MenuCategory[] = [
   {
-    title: "Cosmetique Coréen",
+    title: "Cosmétique Coréen",
     items: [
       { label: "Nettoyants", href: "/categories/cosmetique-coreen/nettoyants" },
       { label: "Essences & Toners", href: "/categories/cosmetique-coreen/essences" },
@@ -70,12 +67,10 @@ const cosmetiqueCoreenMenu: MenuCategory[] = [
       { label: "Crèmes Hydratantes", href: "/categories/cosmetique-coreen/cremes" },
     ]
   },
-  
 ];
 
 /**
- * Configuration du menu mobile - Version minimaliste
- * Utilise les couleurs de votre thème rose
+ * 📱 MOBILE: Configuration du menu compactée
  */
 const mobileMenuItems: MobileMenuItem[] = [
   {
@@ -123,52 +118,45 @@ const mobileMenuItems: MobileMenuItem[] = [
 ];
 
 /**
- * Composant MobileMenuNavigation - Version minimaliste et épurée
+ * 📱 MOBILE OPTIMIZED MobileMenuNavigation - Version ultra compacte
  * 
- * Fonctionnalités simplifiées :
- * - Design minimaliste avec couleurs du thème rose
- * - Accordéons simples pour les catégories avec sous-menus
- * - Animation fluide d'ouverture/fermeture
- * - Éléments spéciaux (promotions/nouveautés) mis en évidence
- * - Fermeture automatique lors du clic sur un lien
+ * Améliorations mobile :
+ * - Padding réduit de moitié partout
+ * - Tailles de texte plus petites
+ * - Espacement vertical réduit
+ * - Icônes plus petites
+ * - Hauteur d'éléments réduite
  */
 export default function MobileMenuNavigation({ onLinkClick }: MobileMenuNavigationProps) {
-  // État pour gérer quel accordéon est ouvert
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
-  /**
-   * Toggle d'un accordéon
-   * Si l'accordéon est déjà ouvert, on le ferme, sinon on l'ouvre
-   */
   const toggleAccordion = (itemLabel: string) => {
     setOpenAccordion(openAccordion === itemLabel ? null : itemLabel);
   };
 
-  /**
-   * Gestion du clic sur un lien - ferme le menu
-   */
   const handleLinkClick = () => {
-    setOpenAccordion(null); // Ferme tous les accordéons
-    onLinkClick(); // Ferme le menu principal
+    setOpenAccordion(null);
+    onLinkClick();
   };
 
   return (
-    <div className="py-2">
-      {/* Liste des catégories */}
-      <div className="space-y-1">
+    <div className="py-1"> {/* 📱 RÉDUIT: py-2 → py-1 */}
+      {/* 📱 MOBILE: Liste des catégories compactée */}
+      <div className="space-y-0"> {/* 📱 RÉDUIT: space-y-1 → space-y-0 */}
         {mobileMenuItems.map((item) => (
           <div key={item.label} className="border-b border-gray-100 last:border-b-0">
             
-            {/* Élément principal de menu */}
+            {/* 📱 MOBILE: Élément principal de menu compacté */}
             <div>
               {item.hasMegaMenu ? (
-                // Accordéon pour les éléments avec sous-menu
+                // 📱 MOBILE: Accordéon compacté
                 <button
                   onClick={() => toggleAccordion(item.label)}
-                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-rose-50 transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-rose-50 transition-colors" 
+                  // 📱 RÉDUIT: px-4 py-4 → px-3 py-2.5
                 >
                   <span 
-                    className={`font-medium text-gray-800 ${
+                    className={`font-medium text-gray-800 text-sm ${  // 📱 AJOUTÉ: text-sm
                       item.isSpecial ? 'font-bold' : ''
                     }`}
                     style={item.isSpecial ? { color: item.specialColor } : {}}
@@ -176,9 +164,9 @@ export default function MobileMenuNavigation({ onLinkClick }: MobileMenuNavigati
                     {item.label}
                   </span>
                   
-                  {/* Flèche d'accordéon */}
+                  {/* 📱 MOBILE: Flèche d'accordéon plus petite */}
                   <svg
-                    className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${  // 📱 RÉDUIT: w-5 h-5 → w-4 h-4
                       openAccordion === item.label ? 'rotate-180' : ''
                     }`}
                     fill="currentColor"
@@ -192,11 +180,11 @@ export default function MobileMenuNavigation({ onLinkClick }: MobileMenuNavigati
                   </svg>
                 </button>
               ) : (
-                // Lien direct pour les éléments sans sous-menu
+                // 📱 MOBILE: Lien direct compacté
                 <Link
                   href={item.href}
                   onClick={handleLinkClick}
-                  className={`block px-4 py-4 font-medium transition-colors hover:bg-rose-50 ${
+                  className={`block px-3 py-2.5 font-medium transition-colors hover:bg-rose-50 text-sm ${  // 📱 RÉDUIT: px-4 py-4 → px-3 py-2.5, AJOUTÉ: text-sm
                     item.isSpecial 
                       ? 'font-bold' 
                       : 'text-gray-800'
@@ -206,7 +194,7 @@ export default function MobileMenuNavigation({ onLinkClick }: MobileMenuNavigati
                   {item.label}
                   {item.isSpecial && (
                     <span 
-                      className="ml-2 px-2 py-1 text-xs font-bold text-white rounded-full"
+                      className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold text-white rounded-full"  // 📱 RÉDUIT: ml-2 px-2 py-1 text-xs → ml-1.5 px-1.5 py-0.5 text-[10px]
                       style={{ backgroundColor: item.specialColor }}
                     >
                       HOT
@@ -216,24 +204,24 @@ export default function MobileMenuNavigation({ onLinkClick }: MobileMenuNavigati
               )}
             </div>
 
-            {/* Contenu de l'accordéon - Sous-catégories */}
+            {/* 📱 MOBILE: Contenu de l'accordéon compacté */}
             {item.hasMegaMenu && openAccordion === item.label && (
               <div className="bg-gray-50 border-l-4 border-rose-300">
-                <div className="py-2">
+                <div className="py-1"> {/* 📱 RÉDUIT: py-2 → py-1 */}
                   
-                  {/* Lien vers la catégorie principale */}
+                  {/* 📱 MOBILE: Lien vers la catégorie principale compacté */}
                   <Link
                     href={item.href}
                     onClick={handleLinkClick}
-                    className="block px-8 py-2 text-sm font-medium text-rose-600 hover:bg-rose-100 transition-colors"
+                    className="block px-6 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-100 transition-colors"  // 📱 RÉDUIT: px-8 py-2 text-sm → px-6 py-1.5 text-xs
                   >
                     Voir tous les {item.label}
                   </Link>
                   
-                  {/* Sous-catégories */}
+                  {/* 📱 MOBILE: Sous-catégories compactées */}
                   {item.megaMenuCategories?.map((category, categoryIndex) => (
-                    <div key={categoryIndex} className="mt-3">
-                      <h4 className="px-8 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <div key={categoryIndex} className="mt-2"> {/* 📱 RÉDUIT: mt-3 → mt-2 */}
+                      <h4 className="px-6 py-0.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider"> {/* 📱 RÉDUIT: px-8 py-1 text-xs → px-6 py-0.5 text-[10px] */}
                         {category.title}
                       </h4>
                       <div className="space-y-0">
@@ -242,7 +230,7 @@ export default function MobileMenuNavigation({ onLinkClick }: MobileMenuNavigati
                             key={subIndex}
                             href={subItem.href}
                             onClick={handleLinkClick}
-                            className="block px-8 py-2 text-sm text-gray-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            className="block px-6 py-1.5 text-xs text-gray-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"  // 📱 RÉDUIT: px-8 py-2 text-sm → px-6 py-1.5 text-xs
                           >
                             {subItem.label}
                           </Link>
@@ -255,6 +243,16 @@ export default function MobileMenuNavigation({ onLinkClick }: MobileMenuNavigati
             )}
           </div>
         ))}
+      </div>
+
+      {/* 📱 MOBILE: Section de fermeture compactée */}
+      <div className="border-t border-gray-200 mt-2 pt-2"> {/* 📱 RÉDUIT: mt-4 pt-4 → mt-2 pt-2 */}
+        <button
+          onClick={handleLinkClick}
+          className="w-full px-3 py-2 text-xs text-gray-500 hover:text-gray-700 transition-colors text-center"  // 📱 RÉDUIT: px-4 py-3 text-sm → px-3 py-2 text-xs
+        >
+          Fermer le menu
+        </button>
       </div>
     </div>
   );

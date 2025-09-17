@@ -1,5 +1,5 @@
 // =================================================================
-// 1. CORRECTION PAGE D'ACCUEIL - app/page.tsx
+// 📱 MOBILE OPTIMIZED - app/page.tsx
 // =================================================================
 'use client';
 
@@ -35,12 +35,12 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ✅ CORRECTION : Ajouter H1 principal (masqué visuellement mais présent pour SEO) */}
+      {/* ✅ H1 principal pour SEO */}
       <h1 className="sr-only">
         BeautyDiscount - Boutique produits Capillaires, Cosmétique et beauté au Maroc.
       </h1>
 
-      {/* Hero Banner Carousel */}
+      {/* 📱 MOBILE: Hero Banner Carousel */}
       <section className="w-full">
         <BannerCarousel 
           slides={homeCarouselSlides}
@@ -48,10 +48,10 @@ export default function HomePage() {
         />
       </section>
 
-      {/* ✅ Les HomeSection auront maintenant des H2 automatiques */}
+      {/* 📱 MOBILE: Sections produits optimisées avec alternance de couleurs */}
       <HomeSection
         categorySlug="lissages"
-        title="Produits de Lissage Professionnel" // ✅ H2 explicite
+        title="Lissages"
         maxProducts={6}
         showViewMore={true}
         containerClass="bg-white"
@@ -59,7 +59,7 @@ export default function HomePage() {
 
       <HomeSection
         subCategorySlug="kits-mini-lissage"
-        title="Kits Mini Lissage" // ✅ H2 explicite
+        title="Kits Mini Lissage"
         maxProducts={6}
         showViewMore={true}
         containerClass="bg-gray-50"
@@ -67,7 +67,7 @@ export default function HomePage() {
 
       <HomeSection
         subCategorySlug="poudres-decolorantes"
-        title="Poudres Décolorantes" // ✅ H2 explicite
+        title="Poudres Décolorantes"
         maxProducts={6}
         showViewMore={true}
         containerClass="bg-white"
@@ -75,35 +75,45 @@ export default function HomePage() {
 
       <HomeSection
         subCategorySlug="masques-capillaires"
-        title="Masques Capillaires Réparateurs" // ✅ H2 explicite
+        title="Masques Capillaires Réparateurs"
         maxProducts={6}
         showViewMore={true}
         containerClass="bg-gray-50"
       />
 
-      {/* ✅ Section Newsletter avec H2 */}
-      <section className="py-16 bg-gradient-to-br from-rose-400 via-rose-500 to-pink-600">
-        <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Restez informé de nos nouveautés
+      {/* 📱 MOBILE: Section Newsletter optimisée */}
+      <section className="py-8 sm:py-16 bg-gradient-to-br from-rose-400 via-rose-500 to-pink-600">
+        <div className="max-w-4xl mx-auto text-center px-3 sm:px-4">
+          {/* 📱 MOBILE: Titre responsive */}
+          <h2 className="text-2xl sm:text-4xl font-bold text-white mb-3 sm:mb-4">
+            <span className="block sm:hidden">Nos nouveautés</span>
+            <span className="hidden sm:block">Restez informé de nos nouveautés</span>
           </h2>
-          <p className="text-pink-100 mb-8 text-lg">
-            Inscrivez-vous à notre newsletter pour recevoir nos offres exclusives
+          
+          {/* 📱 MOBILE: Description adaptée */}
+          <p className="text-pink-100 mb-6 sm:mb-8 text-sm sm:text-lg">
+            <span className="block sm:hidden">Offres exclusives par email</span>
+            <span className="hidden sm:block">Inscrivez-vous à notre newsletter pour recevoir nos offres exclusives</span>
           </p>
           
-          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+          {/* 📱 MOBILE: Formulaire newsletter responsive */}
+          <form 
+            onSubmit={handleNewsletterSubmit} 
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-md mx-auto"
+          >
             <input
               type="email"
               name="email"
               placeholder="Votre adresse email"
               required
-              className="flex-1 px-6 py-4 rounded-lg border-0 focus:ring-4 focus:ring-pink-300 focus:outline-none text-gray-800"
+              className="flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-lg border-0 focus:ring-2 sm:focus:ring-4 focus:ring-pink-300 focus:outline-none text-gray-800 text-sm sm:text-base"
             />
             <button 
               type="submit"
-              className="bg-white text-rose-600 px-8 py-4 rounded-lg font-bold hover:bg-gray-100 transition-all duration-200 shadow-lg"
+              className="bg-white text-rose-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold hover:bg-gray-100 transition-all duration-200 shadow-lg text-sm sm:text-base"
             >
-              S&apos;inscrire
+              <span className="block sm:hidden">S&apos;inscrire</span>
+              <span className="hidden sm:block">S&apos;inscrire</span>
             </button>
           </form>
         </div>
