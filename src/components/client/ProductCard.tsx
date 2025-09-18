@@ -22,6 +22,7 @@ interface ProductCardProps {
  * ✅ MOBILE OPTIMIZED ProductCard
  * 📱 Textes, prix et boutons adaptés aux petits écrans
  * 🎯 Padding réduit, tailles responsive, meilleure lisibilité
+ * 🔧 NOUVEAU: Hauteur des boutons mobile réduite de 40%
  */
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
@@ -145,7 +146,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   };
 
   return (
-    <article className="bg-white border border-gray-200  overflow-hidden hover:shadow-lg transition-all duration-300 group relative flex flex-col">
+    <article className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group relative flex flex-col">
       
       {/* 📱 MOBILE: Badges repositionnés plus compacts */}
       <div className="absolute top-1 sm:top-2 left-0 right-0 z-10 flex justify-between items-start px-1 sm:px-2">
@@ -270,8 +271,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             {/* 📱 MOBILE: Stock et prix compactés */}
             <div className="flex items-center justify-between">
               {/* Statut du stock */}
-              <div className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs  ${getStockStatusClasses(product.stock)}`}>
-                <span className="w-1 h-1 sm:w-1.5 sm:h-1.5  bg-current/60" />
+              <div className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs ${getStockStatusClasses(product.stock)}`}>
+                <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-current/60" />
                 <span>{product.stock}</span>
               </div>
               
@@ -284,7 +285,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </div>
       </Link>
 
-      {/* 📱 MOBILE: Boutons d'action compactés */}
+      {/* 🎯 MOBILE: Boutons d'action avec hauteur réduite de 40% */}
       <div className="px-2 sm:px-4 pb-2 sm:pb-4 mt-auto">
         <div className="flex gap-1 sm:gap-2">
           {productInCart ? (
@@ -292,10 +293,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             <div className="flex gap-1 sm:gap-2 w-full">
               <button 
                 onClick={handleViewCart}
-                className="flex-1 bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 font-medium py-1.5 sm:py-2 px-2 sm:px-4  transition-colors text-[10px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
+                className="flex-1 bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 font-medium py-1 sm:py-2 px-2 sm:px-4 transition-colors text-[10px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
                 aria-label={`Voir le panier contenant ${quantityInCart} ${product.name}`}
               >
-                <svg width="12" height="12" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg width="10" height="10" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                 </svg>
                 <span className="hidden sm:inline">Voir le panier ({quantityInCart})</span>
@@ -304,21 +305,21 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               <button 
                 onClick={handleAddToCart}
                 disabled={product.stock === "Rupture" || isAddingToCart}
-                className="bg-rose-300 hover:bg-rose-400 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-black font-medium py-1.5 sm:py-2 px-2 sm:px-3  transition-colors text-[10px] sm:text-sm"
+                className="bg-rose-300 hover:bg-rose-400 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-black font-medium py-1 sm:py-2 px-2 sm:px-3 transition-colors text-[10px] sm:text-sm"
                 title="Ajouter une autre unité"
                 aria-label={`Ajouter une autre unité de ${product.name} au panier`}
               >
-                <svg width="12" height="12" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg width="10" height="10" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                 </svg>
               </button>
             </div>
           ) : (
-            /* 📱 MOBILE: Bouton d'ajout au panier compacté */
+            /* 🎯 MOBILE: Bouton d'ajout au panier avec hauteur réduite de 40% */
             <button 
               onClick={handleAddToCart}
               disabled={product.stock === "Rupture" || isAddingToCart}
-              className={`flex-1 font-medium py-1.5 sm:py-2 px-2 sm:px-4 transition-all duration-200 text-[11px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2 ${
+              className={`flex-1 font-medium py-1 sm:py-2 px-2 sm:px-4 transition-all duration-200 text-[11px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2 ${
                 product.stock === "Rupture"
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : isAddingToCart
@@ -333,7 +334,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             >
               {isAddingToCart ? (
                 <>
-                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-black border-t-transparent  animate-spin" aria-hidden="true" />
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-black border-t-transparent animate-spin" aria-hidden="true" />
                   <span className="hidden sm:inline">Ajout...</span>
                   <span className="sm:hidden">...</span>
                 </>
@@ -344,7 +345,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 </>
               ) : (
                 <>
-                  <svg width="12" height="12" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <svg width="10" height="10" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                   </svg>
                   <span className="hidden sm:inline">Ajouter au panier</span>
@@ -370,7 +371,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
         {/* Message de confirmation d'ajout */}
         {isAddingToCart && (
-          <div className="mt-1 sm:mt-2 p-1 sm:p-2 bg-green-50 border border-green-200  text-center" role="status" aria-live="polite">
+          <div className="mt-1 sm:mt-2 p-1 sm:p-2 bg-green-50 border border-green-200 text-center" role="status" aria-live="polite">
             <span className="text-green-700 text-[9px] sm:text-xs font-medium">
               ✅ <span className="hidden sm:inline">Produit ajouté au panier avec succès !</span>
               <span className="sm:hidden">Ajouté !</span>
