@@ -22,7 +22,7 @@ interface ProductCardProps {
  * ✅ MOBILE OPTIMIZED ProductCard
  * 📱 Textes, prix et boutons adaptés aux petits écrans
  * 🎯 Padding réduit, tailles responsive, meilleure lisibilité
- * 🔧 NOUVEAU: Hauteur des boutons mobile réduite de 40%
+ * 🔧 NOUVEAU: Espace violet réduit dans la section des boutons
  */
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
@@ -285,15 +285,15 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </div>
       </Link>
 
-      {/* 🎯 MOBILE: Boutons d'action CORRIGÉS - VOICI LA SECTION À REMPLACER */}
-      <div className="px-2 sm:px-4 pb-2 sm:pb-4 mt-auto">
+      {/* 🎯 ESPACE VIOLET RÉDUIT - Section des boutons d'action optimisée */}
+      <div className="px-2 sm:px-4 pb-1 sm:pb-2">
         <div className="flex gap-1 sm:gap-2">
           {productInCart ? (
             /* Si le produit est déjà dans le panier */
             <div className="flex gap-1 sm:gap-2 w-full">
               <button 
                 onClick={handleViewCart}
-                className="flex-1 bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 font-medium h-7 sm:h-10 px-2 sm:px-4 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 min-w-0"
+                className="flex-1 bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 font-medium h-6 sm:h-9 px-2 sm:px-4 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 min-w-0"
                 aria-label={`Voir le panier contenant ${quantityInCart} ${product.name}`}
               >
                 <svg width="12" height="12" className="sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -305,7 +305,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               <button 
                 onClick={handleAddToCart}
                 disabled={product.stock === "Rupture" || isAddingToCart}
-                className="bg-rose-300 hover:bg-rose-400 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-black font-medium h-7 sm:h-10 w-8 sm:w-12 transition-colors text-xs sm:text-sm flex items-center justify-center flex-shrink-0"
+                className="bg-rose-300 hover:bg-rose-400 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-black font-medium h-6 sm:h-9 w-7 sm:w-11 transition-colors text-xs sm:text-sm flex items-center justify-center flex-shrink-0"
                 title="Ajouter une autre unité"
                 aria-label={`Ajouter une autre unité de ${product.name} au panier`}
               >
@@ -315,11 +315,11 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               </button>
             </div>
           ) : (
-            /* 🎯 MOBILE: Bouton d'ajout au panier CORRIGÉ */
+            /* 🎯 Bouton d'ajout au panier avec hauteur réduite */
             <button 
               onClick={handleAddToCart}
               disabled={product.stock === "Rupture" || isAddingToCart}
-              className={`flex-1 font-medium h-7 sm:h-10 px-2 sm:px-4 transition-all duration-200 text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-2 min-w-0 ${
+              className={`flex-1 font-medium h-6 sm:h-9 px-2 sm:px-4 transition-all duration-200 text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-2 min-w-0 ${
                 product.stock === "Rupture"
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : isAddingToCart
@@ -356,8 +356,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           )}
         </div>
 
-        {/* 📱 MOBILE: Indicateur de livraison plus petit */}
-        <div className="h-4 sm:h-6 flex items-center mt-1 sm:mt-2">
+        {/* 📱 MOBILE: Indicateur de livraison plus compact */}
+        <div className="h-3 sm:h-5 flex items-center mt-0.5 sm:mt-1">
           {product.stock === "En Stock" && (
             <div className="flex items-center gap-0.5 sm:gap-1 text-green-600 text-[9px] sm:text-xs">
               <svg className="w-2 h-2 sm:w-3 sm:h-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -369,9 +369,9 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           )}
         </div>
 
-        {/* Message de confirmation d'ajout */}
+        {/* Message de confirmation d'ajout - Plus compact */}
         {isAddingToCart && (
-          <div className="mt-1 sm:mt-2 p-1 sm:p-2 bg-green-50 border border-green-200 text-center" role="status" aria-live="polite">
+          <div className="mt-0.5 sm:mt-1 p-1 sm:p-2 bg-green-50 border border-green-200 text-center" role="status" aria-live="polite">
             <span className="text-green-700 text-[9px] sm:text-xs font-medium">
               ✅ <span className="hidden sm:inline">Produit ajouté au panier avec succès !</span>
               <span className="sm:hidden">Ajouté !</span>

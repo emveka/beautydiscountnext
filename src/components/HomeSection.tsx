@@ -154,7 +154,7 @@ const HomeSection: React.FC<HomeSectionProps> = ({
   if (state.loading) {
     return (
       <section className={`py-6 sm:py-12 bg-white ${containerClass}`}>
-        <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
+        <div className="max-w-[1700px] mx-auto px-2 sm:px-4">
           {/* 📱 MOBILE: Header avec skeleton compacté */}
           <div className="flex justify-between items-center mb-4 sm:mb-8">
             <div className="space-y-2 sm:space-y-3">
@@ -188,7 +188,7 @@ const HomeSection: React.FC<HomeSectionProps> = ({
   if (state.error) {
     return (
       <section className={`py-6 sm:py-12 bg-white ${containerClass}`}>
-        <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
+        <div className="max-w-[1700px] mx-auto px-2 sm:px-4">
           <div className="text-center py-8 sm:py-12">
             <div className="text-red-400 mb-3 sm:mb-4">
               <svg className="w-8 h-8 sm:w-12 sm:h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
@@ -220,7 +220,7 @@ const HomeSection: React.FC<HomeSectionProps> = ({
   if (state.products.length === 0) {
     return (
       <section className={`py-6 sm:py-12 bg-white ${containerClass}`}>
-        <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
+        <div className="max-w-[1700px] mx-auto px-2 sm:px-4">
           <div className="text-center py-8 sm:py-12">
             <div className="text-gray-400 mb-3 sm:mb-4">
               <svg className="w-8 h-8 sm:w-12 sm:h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
@@ -244,7 +244,7 @@ const HomeSection: React.FC<HomeSectionProps> = ({
    */
   return (
     <section className={`py-6 sm:py-10 bg-white ${containerClass}`}>
-      <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
+      <div className="max-w-[1700px] mx-auto px-2 sm:px-4">
         
         {/* 📱 MOBILE: Header avec espacement réduit */}
         <div className="flex justify-between items-start mb-4 sm:mb-8">
@@ -293,7 +293,7 @@ const HomeSection: React.FC<HomeSectionProps> = ({
         </div>
 
         {/* 📱 MOBILE: Grille des produits avec gap réduit */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3">
           {state.products.map((product, index) => (
             <ProductCard 
               key={product.id} 
