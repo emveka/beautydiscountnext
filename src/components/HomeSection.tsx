@@ -158,21 +158,21 @@ const HomeSection: React.FC<HomeSectionProps> = ({
           {/* 📱 MOBILE: Header avec skeleton compacté */}
           <div className="flex justify-between items-center mb-4 sm:mb-8">
             <div className="space-y-2 sm:space-y-3">
-              <div className="h-6 sm:h-8 bg-gray-200 rounded w-48 sm:w-64 animate-pulse"></div>
-              <div className="h-3 sm:h-4 bg-gray-200 rounded w-64 sm:w-96 animate-pulse"></div>
+              <div className="h-6 sm:h-8 bg-gray-200  w-48 sm:w-64 animate-pulse"></div>
+              <div className="h-3 sm:h-4 bg-gray-200  w-64 sm:w-96 animate-pulse"></div>
             </div>
-            <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-20 animate-pulse"></div>
+            <div className="h-3 sm:h-4 bg-gray-200  w-16 sm:w-20 animate-pulse"></div>
           </div>
           
           {/* 📱 MOBILE: Skeleton des produits avec gap réduit */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6">
             {[...Array(maxProducts)].map((_, index) => (
-              <div key={index} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div key={index} className="bg-white  border border-gray-200 overflow-hidden">
                 <div className="aspect-square bg-gray-200 animate-pulse"></div>
                 <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
-                  <div className="h-2 sm:h-3 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                  <div className="h-6 sm:h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-2 sm:h-3 bg-gray-200  animate-pulse"></div>
+                  <div className="h-3 sm:h-4 bg-gray-200  w-3/4 animate-pulse"></div>
+                  <div className="h-6 sm:h-8 bg-gray-200  animate-pulse"></div>
                 </div>
               </div>
             ))}
@@ -201,7 +201,7 @@ const HomeSection: React.FC<HomeSectionProps> = ({
             <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">{state.error}</p>
             <button
               onClick={loadData}
-              className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-rose-500 text-white font-semibold rounded-lg hover:bg-rose-600 transition-colors text-sm sm:text-base"
+              className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-rose-500 text-white font-semibold  hover:bg-rose-600 transition-colors text-sm sm:text-base"
             >
               <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
@@ -264,7 +264,7 @@ const HomeSection: React.FC<HomeSectionProps> = ({
             {/* Badge contextuel pour sous-catégories */}
             {state.subCategory && state.category && (
               <div className="mt-2 sm:mt-3">
-                <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm bg-rose-100 text-rose-700 rounded-full">
+                <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm bg-rose-100 text-rose-700 ">
                   <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>

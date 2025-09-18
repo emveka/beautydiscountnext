@@ -154,7 +154,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           {/* Badge personnalisé depuis Firebase */}
           {product.badgeText && (
             <span 
-              className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded shadow-sm ${getBadgeStyles(product.badgeColor)}`}
+              className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm ${getBadgeStyles(product.badgeColor)}`}
               style={
                 product.badgeColor && 
                 !['red', 'blue', 'green', 'yellow', 'purple', 'pink', 'indigo', 'orange', 'teal', 'cyan', 'gray', 'slate'].includes(product.badgeColor.toLowerCase())
@@ -168,14 +168,14 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           
           {/* Badge stock épuisé */}
           {product.stock === "Rupture" && (
-            <span className="bg-gray-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded shadow-sm">
+            <span className="bg-gray-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm">
               Épuisé
             </span>
           )}
 
           {/* Badge "Dans le panier" */}
           {productInCart && (
-            <span className="bg-green-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded shadow-sm flex items-center gap-0.5 sm:gap-1">
+            <span className="bg-green-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-0.5 sm:gap-1">
               <svg width="10" height="10" className="sm:w-3 sm:h-3" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
               </svg>
@@ -190,7 +190,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         <div className="flex flex-col gap-0.5 sm:gap-1">
           {/* Badge de réduction */}
           {discount && discount > 0 && (
-            <span className="bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded shadow-sm">
+            <span className="bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm">
               -{discount}%
             </span>
           )}
@@ -204,7 +204,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         <div className="aspect-square bg-gray-50 overflow-hidden relative">
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse">
-              <div className="w-8 h-8 sm:w-12 sm:h-12 border-2 sm:border-4 border-gray-300 border-t-rose-300 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 sm:w-12 sm:h-12 border-2 sm:border-4 border-gray-300 border-t-rose-300 animate-spin"></div>
             </div>
           )}
           
@@ -270,8 +270,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             {/* 📱 MOBILE: Stock et prix compactés */}
             <div className="flex items-center justify-between">
               {/* Statut du stock */}
-              <div className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs rounded-full ${getStockStatusClasses(product.stock)}`}>
-                <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-current/60" />
+              <div className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs  ${getStockStatusClasses(product.stock)}`}>
+                <span className="w-1 h-1 sm:w-1.5 sm:h-1.5  bg-current/60" />
                 <span>{product.stock}</span>
               </div>
               
@@ -292,7 +292,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             <div className="flex gap-1 sm:gap-2 w-full">
               <button 
                 onClick={handleViewCart}
-                className="flex-1 bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 font-medium py-1.5 sm:py-2 px-2 sm:px-4 rounded-md transition-colors text-[10px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
+                className="flex-1 bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 font-medium py-1.5 sm:py-2 px-2 sm:px-4  transition-colors text-[10px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
                 aria-label={`Voir le panier contenant ${quantityInCart} ${product.name}`}
               >
                 <svg width="12" height="12" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -304,7 +304,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               <button 
                 onClick={handleAddToCart}
                 disabled={product.stock === "Rupture" || isAddingToCart}
-                className="bg-rose-300 hover:bg-rose-400 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-black font-medium py-1.5 sm:py-2 px-2 sm:px-3 rounded-md transition-colors text-[10px] sm:text-sm"
+                className="bg-rose-300 hover:bg-rose-400 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-black font-medium py-1.5 sm:py-2 px-2 sm:px-3  transition-colors text-[10px] sm:text-sm"
                 title="Ajouter une autre unité"
                 aria-label={`Ajouter une autre unité de ${product.name} au panier`}
               >
@@ -318,7 +318,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             <button 
               onClick={handleAddToCart}
               disabled={product.stock === "Rupture" || isAddingToCart}
-              className={`flex-1 font-medium py-1.5 sm:py-2 px-2 sm:px-4 rounded-md transition-all duration-200 text-[11px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2 ${
+              className={`flex-1 font-medium py-1.5 sm:py-2 px-2 sm:px-4 transition-all duration-200 text-[11px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2 ${
                 product.stock === "Rupture"
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : isAddingToCart
@@ -333,7 +333,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             >
               {isAddingToCart ? (
                 <>
-                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-black border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-black border-t-transparent  animate-spin" aria-hidden="true" />
                   <span className="hidden sm:inline">Ajout...</span>
                   <span className="sm:hidden">...</span>
                 </>
@@ -363,14 +363,14 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span className="hidden sm:inline">Livraison le {getDeliveryDate()}</span>
-              <span className="sm:hidden">Livré le {getDeliveryDate()}</span>
+              <span className="sm:hidden">Livraison le {getDeliveryDate()}</span>
             </div>
           )}
         </div>
 
         {/* Message de confirmation d'ajout */}
         {isAddingToCart && (
-          <div className="mt-1 sm:mt-2 p-1 sm:p-2 bg-green-50 border border-green-200 rounded text-center" role="status" aria-live="polite">
+          <div className="mt-1 sm:mt-2 p-1 sm:p-2 bg-green-50 border border-green-200  text-center" role="status" aria-live="polite">
             <span className="text-green-700 text-[9px] sm:text-xs font-medium">
               ✅ <span className="hidden sm:inline">Produit ajouté au panier avec succès !</span>
               <span className="sm:hidden">Ajouté !</span>

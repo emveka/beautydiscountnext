@@ -71,7 +71,7 @@ const CategoryProducts: React.FC<CategoryProductsProps> = ({
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`px-6 py-3 rounded-full font-medium transition-all ${
+              className={`px-6 py-3 font-medium transition-all ${
                 activeCategory === category.id
                   ? 'bg-rose-500 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-rose-100'
@@ -97,7 +97,7 @@ const CategoryProducts: React.FC<CategoryProductsProps> = ({
         {/* Grille des produits */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
           {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <div key={product.id} className="bg-white shadow-md overflow-hidden hover:shadow-lg transition-shadow">
               
               {/* Image du produit */}
               <div className="aspect-square bg-gray-100 p-4">

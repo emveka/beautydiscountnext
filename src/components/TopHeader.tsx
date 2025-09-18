@@ -10,9 +10,9 @@ interface TopHeaderProps {
 
 export default function TopHeader({
   messages = [
-    "Beautydiscount |  Vos meilleur marques a petit prix",
-    "Livraison Rapide dans tout le maroc",
-    "Commandez Puis payez à la réception du colis"
+    "Beautydiscount | Vos meilleures marques à petit prix",
+    "Livraison rapide dans tout le Maroc",
+    "Commandez puis payez à la réception"
   ],
   className = "",
 }: TopHeaderProps) {
@@ -29,19 +29,24 @@ export default function TopHeader({
         setIsVisible(true);
       }, 500); // Attend 500ms avant de changer le message
       
-    }, 4000);
+    }, 4000); // Change de message toutes les 4 secondes
 
     return () => clearInterval(interval);
   }, [messages.length]);
 
   return (
     <div className={`text-white ${className}`} style={{ backgroundColor: '#1e1e1e' }}>
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="flex items-center justify-center py-1">
+      <div className="mx-auto max-w-7xl px-2 sm:px-4">
+        <div className="flex items-center justify-center py-1 sm:py-2">
           <span 
-            className={`text-sm font-semibold transition-opacity duration-500 ${
-              isVisible ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`
+              text-xs sm:text-sm md:text-base
+              font-medium sm:font-semibold
+              text-center
+              leading-tight
+              transition-opacity duration-500
+              ${isVisible ? 'opacity-100' : 'opacity-0'}
+            `}
           >
             {messages[currentIndex]}
           </span>

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import ProductGrid from "@/components/client/ProductGrid";
-import CategoryInfo from "@/components/server/CategoryInfo";
+
 import BreadcrumbNav from "@/components/server/BreadcrumbNav";
 import { 
   getCategoryBySlug, 
@@ -54,16 +54,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           </div>
         </section>
 
-        {/* ✅ Header de la catégorie avec informations - CONTIENT LE H1 */}
-        <section className="bg-gray-50">
-          <div className="w-full max-w-[1700px] mx-auto px-4 py-8">
-            <CategoryInfo 
-              category={category}
-              productCount={products.length}
-              subCategoriesCount={subCategories.length}
-            />
-          </div>
-        </section>
+
 
         {/* ✅ CORRIGÉ : Grid des produits sans H1 (CategoryInfo contient déjà le H1) */}
         <section className="flex-1">

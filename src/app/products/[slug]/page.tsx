@@ -25,20 +25,14 @@ interface ProductPageProps {
 }
 
 /**
- * Page produit détaillée - Server Component
- * Récupère toutes les données côté serveur pour optimiser le SEO
+ * Page produit détaillée - Server Component OPTIMISÉ MOBILE
  * 
- * Fonctionnalités incluses :
- * - ✅ Galerie d'images responsive
- * - ✅ Informations produit avec prix et stock
- * - ✅ NOUVEAU : Intégration complète du système de panier
- * - ✅ Onglets description/caractéristiques/avis
- * - ✅ Produits similaires/recommandés
- * - ✅ Breadcrumb navigation complet
- * - ✅ Métadonnées SEO optimisées
- * - ✅ Schema.org structured data
- * - ✅ Corrections TypeScript et imports
- * - ✅ CORRIGÉ : Hiérarchie H1-H4 appropriée
+ * ✅ NOUVELLES OPTIMISATIONS MOBILE :
+ * - Espacement réduit sur mobile
+ * - Layout adaptatif avec breakpoints précis
+ * - Padding optimisé pour le bottom sticky
+ * - Conteneurs avec max-width appropriés
+ * - Images responsive avec tailles adaptées
  */
 export default async function ProductPage({ params }: ProductPageProps) {
   try {
@@ -52,17 +46,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
       notFound();
     }
     
-    // ✅ Récupération en parallèle des données contextuelles avec IDs corrigés
+    // Récupération en parallèle des données contextuelles
     const [category, subCategory, relatedProducts] = await Promise.all([
-      // Catégorie parente par ID (pas par slug)
       getCategoryById(product.categoryId),
-      
-      // Sous-catégorie si elle existe par ID (pas par slug)
       product.subCategoryId 
         ? getSubCategoryById(product.subCategoryId) 
         : Promise.resolve(null),
-      
-      // Produits similaires (même sous-catégorie ou catégorie)
       product.subCategoryId
         ? getSubCategoryProductsWithBrands(product.subCategoryId)
         : getCategoryProductsWithBrands(product.categoryId)
@@ -106,31 +95,31 @@ export default async function ProductPage({ params }: ProductPageProps) {
     
     return (
       <div className="min-h-screen bg-white">
-        {/* Breadcrumb Navigation */}
+        {/* 🎯 BREADCRUMB - Responsive optimisé */}
         <section className="bg-white border-b border-gray-200">
-          <div className="w-full max-w-[1700px] mx-auto px-4 py-4">
+          <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-4">
             <BreadcrumbNav items={breadcrumbItems} />
           </div>
         </section>
 
-        {/* Contenu principal du produit */}
-        <section className="py-8">
-          <div className="w-full max-w-[1700px] mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        {/* 🎯 CONTENU PRINCIPAL - Layout mobile first */}
+        <section className="py-4 sm:py-6 lg:py-8">
+          <div className="w-full max-w-7xl mx-auto px-3 sm:px-4">
+            {/* Grid responsive avec gap adaptatif */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 xl:gap-12">
               
-              {/* ✅ Galerie d'images - Côté gauche */}
-              <div className="space-y-4">
+              {/* 🎯 GALERIE D'IMAGES - Optimisée mobile */}
+              <div className="space-y-3 sm:space-y-4">
                 <ProductGallery 
                   images={product.images}
                   imagePaths={product.imagePaths}
                   productName={product.name}
-                  priority={true} // Image principale en priority
+                  priority={true}
                 />
               </div>
 
-              {/* ✅ NOUVEAU : Informations produit avec intégration panier - Côté droit */}
-              {/* ProductInfo contient déjà le H1 principal */}
-              <div className="space-y-6">
+              {/* 🎯 INFORMATIONS PRODUIT - Avec gestion mobile sticky */}
+              <div className="space-y-4 sm:space-y-6">
                 <ProductInfo 
                   product={product}
                   category={category}
@@ -143,9 +132,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </section>
 
-        {/* ✅ Onglets détails produit */}
-        <section className="py-8 bg-gray-50">
-          <div className="w-full max-w-[1700px] mx-auto px-4">
+        {/* 🎯 ONGLETS DÉTAILS - Padding mobile adapté */}
+        <section className="py-4 sm:py-6 lg:py-8 bg-gray-50">
+          <div className="w-full max-w-7xl mx-auto px-3 sm:px-4">
             <ProductTabs 
               product={product}
               category={category}
@@ -154,21 +143,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </section>
 
-        {/* ✅ CORRIGÉ : Produits similaires avec H2 approprié */}
+        {/* 🎯 PRODUITS SIMILAIRES - Section responsive */}
         {similarProducts.length > 0 && (
-          <section className="py-12 bg-white">
-            <div className="w-full max-w-[1700px] mx-auto px-4">
-              {/* ✅ CORRECTION PRINCIPALE : Ajout du H2 obligatoire pour la section */}
-              <div className="text-center mb-8">
-                <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
+          <section className="py-6 sm:py-8 lg:py-12 bg-white">
+            <div className="w-full max-w-7xl mx-auto px-3 sm:px-4">
+              {/* En-tête de section mobile friendly */}
+              <div className="text-center mb-6 sm:mb-8">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
                   Produits similaires
                 </h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
+                <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-2">
                   Découvrez d&apos;autres produits qui pourraient vous intéresser dans la même catégorie
                 </p>
               </div>
               
-              {/* RelatedProducts utilise maintenant H3 au lieu de H2 */}
+              {/* Carrousel de produits similaires */}
               <RelatedProducts 
                 products={similarProducts}
                 title={subCategory 
@@ -182,7 +171,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </section>
         )}
 
-        {/* ✅ Données structurées Schema.org */}
+        {/* 🎯 PADDING BOTTOM MOBILE pour éviter le chevauchement sticky */}
+        <div className="sm:hidden h-4"></div>
+
+        {/* Données structurées Schema.org */}
         <ProductSchema 
           product={product}
           category={category}
@@ -199,9 +191,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 }
 
 /**
- * ✅ GÉNÉRATION DES MÉTADONNÉES SEO OPTIMISÉES
- * Utilise toutes les données du produit pour maximiser le référencement
- * ✅ Fix des propriétés Open Graph non standard
+ * ✅ MÉTADONNÉES SEO OPTIMISÉES - Inchangées mais important
  */
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   try {
@@ -227,11 +217,11 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         : Promise.resolve(null)
     ]);
 
-    // ✅ Construction du titre SEO optimisé
+    // Construction du titre SEO optimisé
     const seoTitle = product.seo?.metaTitle || 
       `${product.name} | ${product.brandName ? product.brandName + ' - ' : ''}BeautyDiscount`;
     
-    // ✅ Description enrichie avec contexte
+    // Description enrichie avec contexte
     let seoDescription = product.seo?.metaDescription;
     
     if (!seoDescription) {
@@ -254,7 +244,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       }
     }
 
-    // ✅ Mots-clés enrichis avec le contexte
+    // Mots-clés enrichis avec le contexte
     let keywords = product.seo?.metaKeywords;
     if (!keywords) {
       keywords = [
@@ -270,7 +260,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       ];
     }
 
-    // ✅ Image principale pour les réseaux sociaux
+    // Image principale pour les réseaux sociaux
     const productImage = getProductImageUrl(product);
     const ogImage = productImage.startsWith('http') 
       ? productImage 
@@ -281,12 +271,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       description: seoDescription,
       keywords: keywords?.join(', '),
       
-      // ✅ Open Graph pour les réseaux sociaux (propriétés corrigées)
+      // Open Graph pour les réseaux sociaux
       openGraph: {
         title: seoTitle,
         description: seoDescription,
         url: `https://beautydiscount.ma/products/${slug}`,
-        type: 'website', // Changé de 'product' vers 'website' pour éviter l'erreur
+        type: 'website',
         images: [
           {
             url: ogImage,
@@ -297,7 +287,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         ],
       },
 
-      // ✅ Twitter Card
+      // Twitter Card
       twitter: {
         card: 'summary_large_image',
         title: seoTitle,
@@ -305,12 +295,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         images: [ogImage],
       },
 
-      // ✅ URL canonique
+      // URL canonique
       alternates: {
         canonical: product.seo?.canonicalUrl || `https://beautydiscount.ma/products/${slug}`,
       },
 
-      // ✅ Métadonnées e-commerce dans 'other' (solution pour les propriétés custom)
+      // Métadonnées e-commerce
       other: {
         'product:price:amount': product.price.toString(),
         'product:price:currency': 'MAD',
@@ -319,7 +309,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         ...(product.sku && { 'product:sku': product.sku }),
       },
 
-      // ✅ Robots et indexation
+      // Robots et indexation
       robots: {
         index: true,
         follow: true,
@@ -345,19 +335,10 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 /**
  * ✅ GÉNÉRATION STATIQUE DES PARAMÈTRES (Optionnel)
- * Pour pré-générer les pages des produits les plus populaires
  */
 export async function generateStaticParams() {
   try {
-    // Vous pouvez récupérer les slugs des produits les plus populaires
-    // pour les pré-générer au build time
-    
-    // const popularProducts = await getPopularProducts(50);
-    // return popularProducts.map(product => ({
-    //   slug: product.slug
-    // }));
-    
-    // Pour l'instant, on retourne un tableau vide (génération à la demande)
+    // Retourne un tableau vide (génération à la demande)
     return [];
     
   } catch (error) {

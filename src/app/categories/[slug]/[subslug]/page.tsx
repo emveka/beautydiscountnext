@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 
 import ProductGrid from "@/components/client/ProductGrid";
-import CategoryInfo from "@/components/server/CategoryInfo";
+
 import BreadcrumbNav from "@/components/server/BreadcrumbNav";
 import { 
   getCategoryBySlug, 
@@ -71,26 +71,7 @@ export default async function SubCategoryPage({ params }: SubCategoryPageProps) 
           </div>
         </section>
 
-        {/* ✅ Header de la sous-catégorie avec informations - CONTIENT LE H1 */}
-        <section className="bg-gray-50">
-          <div className="w-full max-w-[1700px] mx-auto px-4 py-8">
-            <CategoryInfo 
-              category={{
-                ...parentCategory,
-                // ✅ Remplacer les données avec celles de la sous-catégorie
-                name: subCategory.name,
-                slug: subCategory.slug,
-                description: subCategory.description || `Découvrez notre sélection ${subCategory.name.toLowerCase()} dans la catégorie ${parentCategory.name}.`,
-                image: subCategory.image || parentCategory.image,
-                seo: subCategory.seo || parentCategory.seo
-              }}
-              productCount={products.length}
-              subCategoriesCount={0} // Pas de sous-sous-catégories
-              isSubCategory={true}   // ✅ Nouveau prop pour adapter l'affichage
-              parentCategory={parentCategory} // ✅ Pour afficher le lien parent
-            />
-          </div>
-        </section>
+
 
         {/* ✅ CORRIGÉ : Grid des produits sans H1 (CategoryInfo contient déjà le H1) */}
         <section className="flex-1">
