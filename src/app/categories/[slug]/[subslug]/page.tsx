@@ -59,7 +59,7 @@ export default async function SubCategoryPage({ params }: SubCategoryPageProps) 
       <div className="min-h-screen bg-white">
         {/* Breadcrumb Navigation */}
         <section className="bg-white border-b border-gray-200">
-          <div className="w-full max-w-[1700px] mx-auto px-4 py-4">
+          <div className="w-full max-w-[1500px] mx-auto px-4 py-4">
             <BreadcrumbNav 
               items={[
                 { name: "Accueil", href: "/" },
@@ -75,7 +75,7 @@ export default async function SubCategoryPage({ params }: SubCategoryPageProps) 
 
         {/* ✅ CORRIGÉ : Grid des produits sans H1 (CategoryInfo contient déjà le H1) */}
         <section className="flex-1">
-          <div className="bg-white w-full max-w-[1700px] mx-auto">
+          <div className="bg-white w-full max-w-[1500px] mx-auto">
             <ProductGrid 
               products={products}
               categorySlug={slug}

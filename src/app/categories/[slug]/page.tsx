@@ -43,7 +43,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       <div className="min-h-screen bg-white">
         {/* Breadcrumb Navigation */}
         <section className="bg-white border-b border-gray-200">
-          <div className="w-full max-w-[1700px] mx-auto px-4 py-4">
+          <div className="w-full max-w-[1500px] mx-auto px-4 py-4">
             <BreadcrumbNav 
               items={[
                 { name: "Accueil", href: "/" },
@@ -58,7 +58,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
         {/* ✅ CORRIGÉ : Grid des produits sans H1 (CategoryInfo contient déjà le H1) */}
         <section className="flex-1">
-          <div className="bg-white w-full max-w-[1700px] mx-auto">
+          <div className="bg-white w-full max-w-[1500px] mx-auto">
             <ProductGrid 
               products={products}
               categorySlug={slug}
@@ -72,7 +72,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         {/* Section description longue pour le SEO - Compact et aligné */}
         {category.descriptionLongue && (
           <section className="bg-gray-50 border-t border-gray-100">
-            <div className="w-full max-w-[1700px] mx-auto px-4 py-6">
+            <div className="w-full max-w-[1500px] mx-auto px-4 py-6">
               <div className="w-full text-center">
                 <h2 className="text-lg font-medium text-gray-700 mb-3">
                   En savoir plus sur {category.name}

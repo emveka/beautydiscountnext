@@ -61,7 +61,7 @@ const DELIVERY_RULES = [
 
 export default function LivraisonPage() {
   return (
-    <main className="mx-auto w-full max-w-[1700px] px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <main className="mx-auto w-full max-w-[1500px] px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       {/* Header */}
       <header className="mb-8 lg:mb-12">
         <div className="flex items-start gap-3">

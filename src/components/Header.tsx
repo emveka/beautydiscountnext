@@ -420,7 +420,7 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
 
       {/* Barre de recherche Mobile - Tailwind v4 optimisé */}
       <div className="sticky top-0 z-40 border-b border-gray-200 bg-gray-50 lg:hidden">
-        <div className="mx-auto max-w-[1700px] px-3 py-1">
+        <div className="mx-auto max-w-[1500px] px-3 py-1">
           <form
             onSubmit={handleSubmit}
             className="relative"

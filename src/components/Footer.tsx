@@ -16,7 +16,7 @@ export default function Footer() {
     <footer className="bg-black text-white">
       
       {/* Section principale du footer - GRILLE 2 COLONNES MOBILE */}
-      <div className="mx-auto max-w-[1700px] px-3 sm:px-4 py-8 sm:py-12">
+      <div className="mx-auto max-w-[1500px] px-3 sm:px-4 py-8 sm:py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
           
           {/* Colonne 1: À propos - Optimisée mobile */}
@@ -150,7 +150,7 @@ export default function Footer() {
 
       {/* Footer bottom - Responsive mobile */}
       <div className="border-t border-gray-800">
-        <div className="mx-auto max-w-[1700px] px-3 sm:px-4 py-4 sm:py-6">
+        <div className="mx-auto max-w-[1500px] px-3 sm:px-4 py-4 sm:py-6">
           <div className="flex flex-col space-y-3 sm:space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
             
             {/* Copyright */}

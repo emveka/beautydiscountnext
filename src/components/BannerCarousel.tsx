@@ -89,7 +89,7 @@ export default function BannerCarousel({
           lg:h-[500px]  /* Desktop */
           xl:h-[600px]  /* Grand écran */
           w-full
-          max-w-[1700px]
+          max-w-[1500px]
           mx-auto
         "
       >

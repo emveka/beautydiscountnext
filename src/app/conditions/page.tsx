@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function ConditionsPage() {
   return (
-    <main className="mx-auto w-full max-w-[1700px] px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <main className="mx-auto w-full max-w-[1500px] px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       {/* Header */}
       <header className="mb-10 lg:mb-14">
         <div className="flex items-start gap-3">
