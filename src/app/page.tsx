@@ -1,7 +1,6 @@
 // =================================================================
 // 📱 MOBILE OPTIMIZED - app/page.tsx
 // =================================================================
-'use client';
 
 import BannerCarousel from '@/components/BannerCarousel';
 import HomeSection from '@/components/HomeSection';

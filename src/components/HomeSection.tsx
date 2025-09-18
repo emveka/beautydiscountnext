@@ -146,7 +146,7 @@ const HomeSection: React.FC<HomeSectionProps> = ({
           <div className="flex justify-between items-center mb-4 sm:mb-8">
             <div className="space-y-2 sm:space-y-3">
               <div className="h-6 sm:h-8 bg-gray-200 rounded w-48 sm:w-64 animate-pulse"></div>
-              <div className="h-3 sm:h-4 bg-gray-200 rounded w-64 sm:w-96 animate-pulse"></div>
+              
             </div>
             <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-20 animate-pulse"></div>
           </div>

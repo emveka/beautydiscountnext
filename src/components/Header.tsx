@@ -94,7 +94,7 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
       {/* Header principal avec Tailwind v4 */}
       <header className={`bg-black text-white shadow-lg ${className}`}>
         {/* Container avec les nouvelles propriétés de Tailwind v4 */}
-        <div className="mx-auto w-full max-w-[1500px] px-4 py-2 sm:py-4">
+        <div className="mx-auto w-full max-w-[1500px] px-4 py-2 sm:py-2">
           
           {/* Layout Desktop - Tailwind v4 optimisé */}
           <div className="hidden items-center justify-between lg:flex">

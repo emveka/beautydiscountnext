@@ -98,9 +98,9 @@ export const metadata: Metadata = {
   
   // Icônes
   icons: {
-    icon: '/favicon.ico',
+    icon: '/Beautydiscount Favicon.png',
     shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
+    
   },
 };
 
