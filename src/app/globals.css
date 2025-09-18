@@ -36,8 +36,8 @@
   input[type="button"],
   input[type="submit"],
   .clickable {
-    min-height: 44px; /* Recommandation Apple/Google */
-    min-width: 44px;
+    min-height: 24px; /* Recommandation Apple/Google */
+    min-width: 24px;
   }
   
   /* Réduire les espacements sur très petits écrans */

@@ -285,7 +285,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </div>
       </Link>
 
-      {/* 🎯 MOBILE: Boutons d'action avec hauteur réduite de 40% */}
+      {/* 🎯 MOBILE: Boutons d'action CORRIGÉS - VOICI LA SECTION À REMPLACER */}
       <div className="px-2 sm:px-4 pb-2 sm:pb-4 mt-auto">
         <div className="flex gap-1 sm:gap-2">
           {productInCart ? (
@@ -293,33 +293,33 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             <div className="flex gap-1 sm:gap-2 w-full">
               <button 
                 onClick={handleViewCart}
-                className="flex-1 bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 font-medium py-1 sm:py-2 px-2 sm:px-4 transition-colors text-[10px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
+                className="flex-1 bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 font-medium h-7 sm:h-10 px-2 sm:px-4 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 min-w-0"
                 aria-label={`Voir le panier contenant ${quantityInCart} ${product.name}`}
               >
-                <svg width="10" height="10" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg width="12" height="12" className="sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                 </svg>
-                <span className="hidden sm:inline">Voir le panier ({quantityInCart})</span>
-                <span className="sm:hidden">Panier ({quantityInCart})</span>
+                <span className="hidden sm:inline truncate">Voir le panier ({quantityInCart})</span>
+                <span className="sm:hidden truncate">Panier ({quantityInCart})</span>
               </button>
               <button 
                 onClick={handleAddToCart}
                 disabled={product.stock === "Rupture" || isAddingToCart}
-                className="bg-rose-300 hover:bg-rose-400 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-black font-medium py-1 sm:py-2 px-2 sm:px-3 transition-colors text-[10px] sm:text-sm"
+                className="bg-rose-300 hover:bg-rose-400 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-black font-medium h-7 sm:h-10 w-8 sm:w-12 transition-colors text-xs sm:text-sm flex items-center justify-center flex-shrink-0"
                 title="Ajouter une autre unité"
                 aria-label={`Ajouter une autre unité de ${product.name} au panier`}
               >
-                <svg width="10" height="10" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg width="12" height="12" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                 </svg>
               </button>
             </div>
           ) : (
-            /* 🎯 MOBILE: Bouton d'ajout au panier avec hauteur réduite de 40% */
+            /* 🎯 MOBILE: Bouton d'ajout au panier CORRIGÉ */
             <button 
               onClick={handleAddToCart}
               disabled={product.stock === "Rupture" || isAddingToCart}
-              className={`flex-1 font-medium py-1 sm:py-2 px-2 sm:px-4 transition-all duration-200 text-[11px] sm:text-sm flex items-center justify-center gap-1 sm:gap-2 ${
+              className={`flex-1 font-medium h-7 sm:h-10 px-2 sm:px-4 transition-all duration-200 text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-2 min-w-0 ${
                 product.stock === "Rupture"
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : isAddingToCart
@@ -334,22 +334,22 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             >
               {isAddingToCart ? (
                 <>
-                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-black border-t-transparent animate-spin" aria-hidden="true" />
-                  <span className="hidden sm:inline">Ajout...</span>
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-black border-t-transparent animate-spin flex-shrink-0" aria-hidden="true" />
+                  <span className="hidden sm:inline truncate">Ajout...</span>
                   <span className="sm:hidden">...</span>
                 </>
               ) : product.stock === "Rupture" ? (
                 <>
-                  <span className="hidden sm:inline">Non disponible</span>
-                  <span className="sm:hidden">Épuisé</span>
+                  <span className="hidden sm:inline truncate">Non disponible</span>
+                  <span className="sm:hidden truncate">Épuisé</span>
                 </>
               ) : (
                 <>
-                  <svg width="10" height="10" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <svg width="12" height="12" className="sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                   </svg>
-                  <span className="hidden sm:inline">Ajouter au panier</span>
-                  <span className="sm:hidden">Ajouter</span>
+                  <span className="hidden sm:inline truncate">Ajouter au panier</span>
+                  <span className="sm:hidden truncate">Ajouter</span>
                 </>
               )}
             </button>

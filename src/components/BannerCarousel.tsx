@@ -26,9 +26,10 @@ const defaultSlides: BannerSlide[] = [
 ];
 
 /**
- * Composant BannerCarousel - Carousel d'images responsive avec défilement automatique
- * - Mobile: object-contain (on voit toute l'image en largeur)
- * - ≥ sm   : object-cover   (rendu hero plein écran)
+ * 📱 MOBILE OPTIMIZED BannerCarousel
+ * ✅ Boutons plus petits et repositionnés sur mobile
+ * 🎯 Meilleure accessibilité tactile et visuelle
+ * 🔧 Indicateurs adaptés aux petits écrans
  */
 export default function BannerCarousel({
   slides = defaultSlides,
@@ -114,49 +115,114 @@ export default function BannerCarousel({
                 // 🎯 Mobile: contain (toute l'image visible) | ≥ sm: cover (hero)
                 className="object-contain sm:object-cover object-center"
                 priority={index === 0}
-                fetchPriority={index === 0 ? "high" : undefined}   // ✅ ajout clé
+                fetchPriority={index === 0 ? "high" : undefined}
                 sizes="100vw"
               />
             </div>
           ))}
         </div>
 
-        {/* Flèches */}
+        {/* 📱 FLÈCHES OPTIMISÉES MOBILE */}
+        {/* Flèche gauche */}
         <button
           onClick={prevSlide}
-          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-black/40 hover:bg-black/70 active:bg-black/80 text-white rounded-full transition-all duration-200 z-10 touch-manipulation"
+          className="
+            absolute 
+            left-1 sm:left-4 
+            top-1/2 -translate-y-1/2 
+            w-6 h-6 sm:w-10 sm:h-10 
+            bg-black/30 hover:bg-black/60 active:bg-black/80 
+            text-white 
+            rounded-full 
+            transition-all duration-200 
+            z-10 
+            touch-manipulation
+            flex items-center justify-center
+            border border-white/20
+            backdrop-blur-sm
+          "
           aria-label="Slide précédent"
         >
-          <svg className="w-4 h-4 sm:w-6 sm:h-6 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+          <svg 
+            className="w-3 h-3 sm:w-5 sm:h-5" 
+            fill="currentColor" 
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+          >
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
           </svg>
         </button>
 
+        {/* Flèche droite */}
         <button
           onClick={nextSlide}
-          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-black/40 hover:bg-black/70 active:bg-black/80 text-white rounded-full transition-all duration-200 z-10 touch-manipulation"
+          className="
+            absolute 
+            right-1 sm:right-4 
+            top-1/2 -translate-y-1/2 
+            w-6 h-6 sm:w-10 sm:h-10 
+            bg-black/30 hover:bg-black/60 active:bg-black/80 
+            text-white 
+            rounded-full 
+            transition-all duration-200 
+            z-10 
+            touch-manipulation
+            flex items-center justify-center
+            border border-white/20
+            backdrop-blur-sm
+          "
           aria-label="Slide suivant"
         >
-          <svg className="w-4 h-4 sm:w-6 sm:h-6 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+          <svg 
+            className="w-3 h-3 sm:w-5 sm:h-5" 
+            fill="currentColor" 
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+          >
             <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
           </svg>
         </button>
 
-        {/* Indicateurs */}
+        {/* 📱 INDICATEURS OPTIMISÉS MOBILE */}
         {slides.length > 1 && (
-          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+          <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-1.5 sm:space-x-2 z-10">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-200 touch-manipulation ${
-                  index === currentSlide ? "bg-white scale-110" : "bg-white/60 hover:bg-white/80"
-                }`}
+                className={`
+                  w-1.5 h-1.5 sm:w-3 sm:h-3 
+                  rounded-full 
+                  transition-all duration-200 
+                  touch-manipulation
+                  border border-white/20
+                  ${
+                    index === currentSlide 
+                      ? "bg-white scale-125 shadow-lg" 
+                      : "bg-white/40 hover:bg-white/70 active:bg-white/80"
+                  }
+                `}
                 aria-label={`Aller au slide ${index + 1}`}
+                style={{
+                  minWidth: '12px', // Surface tactile minimum sur mobile
+                  minHeight: '12px'
+                }}
               />
             ))}
           </div>
         )}
+
+        {/* 📱 OVERLAY MOBILE POUR AMÉLIORER LA VISIBILITÉ */}
+        <div className="
+          absolute 
+          bottom-0 
+          left-0 
+          right-0 
+          h-12 sm:h-16
+          bg-gradient-to-t from-black/20 to-transparent 
+          pointer-events-none
+          sm:hidden
+        " />
       </div>
     </div>
   );

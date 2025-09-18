@@ -40,7 +40,7 @@ export default function TopHeader({
         <div className="flex items-center justify-center py-1 sm:py-2">
           <span 
             className={`
-              text-xs sm:text-sm md:text-base
+              text-xs sm:text-sm md:text-sm   /*
               font-medium sm:font-semibold
               text-center
               leading-tight
