@@ -487,7 +487,7 @@ export default function ProductGrid({
         </div>
       )}
 
-      <div className="flex gap-8">
+      <div className="flex gap-2">
         
         {/* Sidebar avec filtres (desktop) */}
         <aside className="hidden lg:block w-64 flex-shrink-0">
@@ -671,7 +671,7 @@ export default function ProductGrid({
 
           {/* Grille de produits */}
           {paginatedProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 sm:gap-6 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 sm:gap-2 mb-8">
               {paginatedProducts.map((product, index) => (
                 <ProductCard 
                   key={product.id} 
