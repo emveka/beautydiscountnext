@@ -119,16 +119,16 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Appliquer à toutes les routes
-        source: '/(.*)',
+        // Appliquer à toutes les routes SAUF les assets
+        source: '/((?!_next/static).*)',
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'DENY', // Empêche l'intégration dans une iframe
+            value: 'DENY',
           },
           {
             key: 'X-Content-Type-Options',
-            value: 'nosniff', // Empêche le sniffing MIME
+            value: 'nosniff',
           },
           {
             key: 'Referrer-Policy',
@@ -136,33 +136,23 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'X-DNS-Prefetch-Control',
-            value: 'on', // Optimise la résolution DNS
+            value: 'on',
           },
         ],
       },
       {
-        // Cache très long pour les assets Next.js (déjà minifiés)
+        // Cache très long pour les assets Next.js (sans X-Content-Type-Options)
         source: '/_next/static/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable', // 1 an
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
       {
         // Cache long pour les images
         source: '/(.*\\.(?:jpg|jpeg|png|webp|avif|gif|svg))',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable', // 1 an
-          },
-        ],
-      },
-      {
-        // Cache pour les assets JS/CSS
-        source: '/(.*\\.(?:js|css|woff|woff2|ttf|otf))',
         headers: [
           {
             key: 'Cache-Control',
