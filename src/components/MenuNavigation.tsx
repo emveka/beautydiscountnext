@@ -322,7 +322,7 @@ export default function MenuNavigation() {
     <>
       {/* Navigation principale - Masquée sur mobile, visible sur desktop */}
       <nav className="bg-rose-300 border-b border-rose-100 relative hidden lg:block">
-        <div className="mx-auto max-w-[1700px] px-4">
+        <div className="mx-auto max-w-[1500px] px-4">
           <div className="flex items-center justify-between">
             
             {/* Menus principaux répartis sur la largeur disponible */}
@@ -384,11 +384,11 @@ export default function MenuNavigation() {
       {/* Mega Menu - Visible uniquement sur desktop */}
       {isMenuVisible && activeItem && activeItem.hasMegaMenu && (
         <div 
-          className="hidden lg:block absolute left-0 right-0 bg-white mx-auto max-w-[1700px] shadow-2xl border-t-4 border-rose-300 z-40"
+          className="hidden lg:block absolute left-0 right-0 bg-white mx-auto max-w-[1500px] shadow-2xl border-t-4 border-rose-300 z-40"
           onMouseEnter={handleMegaMenuEnter}
           onMouseLeave={handleMegaMenuLeave}
         >
-          <div className="mx-auto max-w-[1700px] px-4 py-8">
+          <div className="mx-auto max-w-[1500px] px-4 py-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {activeItem.megaMenuCategories?.map((category, index) => (
                 <div key={index} className="space-y-4">
