@@ -2,10 +2,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // ✅ Désactive les source maps en production pour réduire la taille
+  // Désactive les source maps en production pour réduire la taille
   productionBrowserSourceMaps: false,
   
-  // ✅ Compression GZIP/Brotli (activée par défaut mais explicite)
+  // Compression GZIP/Brotli (activée par défaut mais explicite)
   compress: true,
   
   // Configuration des images optimisées
@@ -41,8 +41,8 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 7,
   },
 
-  // ✅ Configuration Webpack pour minification avancée
-  webpack: (config, { dev, isServer }) => {
+  // Configuration Webpack pour minification avancée
+  webpack: (config, { dev }) => {
     // Seulement en production
     if (!dev) {
       // Optimisation des chunks pour réduire la taille
@@ -115,7 +115,7 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // ✅ Headers optimisés pour le cache et la sécurité
+  // Headers optimisés pour le cache et la sécurité
   async headers() {
     return [
       {
@@ -141,7 +141,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // ✅ Cache très long pour les assets Next.js (déjà minifiés)
+        // Cache très long pour les assets Next.js (déjà minifiés)
         source: '/_next/static/:path*',
         headers: [
           {
@@ -173,13 +173,13 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // ✅ Configuration du compilateur optimisée pour Next.js 15
+  // Configuration du compilateur optimisée pour Next.js 15
   compiler: {
     // Supprime console.log en production
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
-  // ✅ Fonctionnalités expérimentales pour l'optimisation (corrigées pour Next.js 15)
+  // Fonctionnalités expérimentales pour l'optimisation (corrigées pour Next.js 15)
   experimental: {
     // Optimise les imports de packages
     optimizePackageImports: [
@@ -189,12 +189,6 @@ const nextConfig: NextConfig = {
       'react',
       'react-dom'
     ],
-    // Supprimé: esmExternals (cause des avertissements dans Next.js 15)
-  },
-
-  // ✅ Métadonnées de base pour éviter les avertissements
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 };
 

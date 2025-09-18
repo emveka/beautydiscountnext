@@ -44,28 +44,8 @@ function createPlaceholderUrl(width: number = 600, height: number = 600): string
 }
 
 /**
- * Fonction pour gérer les erreurs d'images
- */
-function handleImageError(
-  e: React.SyntheticEvent<HTMLImageElement>, 
-  imageUrl: string, 
-  fallbackWidth: number = 600, 
-  fallbackHeight: number = 600
-) {
-  console.error('Erreur de chargement image:', imageUrl);
-  
-  const target = e.target as HTMLImageElement;
-  const fallbackUrl = createPlaceholderUrl(fallbackWidth, fallbackHeight);
-  
-  // Éviter les boucles infinies de fallback
-  if (target.src !== fallbackUrl) {
-    target.src = fallbackUrl;
-  }
-}
-
-/**
  * Fonction pour traiter les URLs d'images Firebase
- * PRIORITÉ : URLs complètes Firebase > Chemins relatifs > Placeholder
+ * PRIORITÉ : URLs complètes Firebase > Autres URLs > Chemins relatifs > Placeholder
  */
 function processFirebaseImages(images: string[], imagePaths: string[]): string[] {
   const processedImages: string[] = [];
@@ -80,7 +60,7 @@ function processFirebaseImages(images: string[], imagePaths: string[]): string[]
     }
   });
   
-  // 2. Si pas assez d'URLs complètes, ajouter les autres URLs complètes
+  // 2. Si pas assez d'URLs complètes Firebase, ajouter les autres URLs complètes
   images.forEach(imageUrl => {
     if (imageUrl && 
         typeof imageUrl === 'string' && 
@@ -92,8 +72,19 @@ function processFirebaseImages(images: string[], imagePaths: string[]): string[]
     }
   });
   
-  // 3. UNIQUEMENT en dernier recours : Ignorer imagePaths car ils ne fonctionnent pas
-  // Les imagePaths sont des chemins relatifs qui ne pointent vers aucun serveur d'images
+  // 3. En dernier recours : utiliser imagePaths si pas d'URLs complètes
+  if (processedImages.length === 0) {
+    imagePaths.forEach(imagePath => {
+      if (imagePath && 
+          typeof imagePath === 'string' && 
+          imagePath.trim()) {
+        const cleanPath = imagePath.trim();
+        // Ajouter le slash au début si nécessaire
+        const fullPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+        processedImages.push(fullPath);
+      }
+    });
+  }
   
   // 4. Si aucune image valide, retourner placeholder
   if (processedImages.length === 0) {
@@ -105,16 +96,16 @@ function processFirebaseImages(images: string[], imagePaths: string[]): string[]
 }
 
 /**
- * Composant ProductGallery - Version CORRIGÉE pour Firebase
+ * Composant ProductGallery - Version OPTIMISÉE pour PageSpeed
  * 
  * Fonctionnalités :
- * ✅ Priorité aux URLs complètes Firebase Storage
- * ✅ Ignore les imagePaths (chemins relatifs non fonctionnels)
- * ✅ Navigation avec flèches gauche/droite
- * ✅ Miniatures cliquables en bas
- * ✅ Modal zoom en plein écran
- * ✅ Responsive mobile/desktop
- * ✅ Gestion d'erreurs robuste
+ * - Priorité aux URLs complètes Firebase Storage
+ * - Navigation avec flèches gauche/droite
+ * - Miniatures cliquables en bas
+ * - Modal zoom en plein écran
+ * - Responsive mobile/desktop
+ * - Gestion d'erreurs robuste
+ * - Optimisations PageSpeed avec Next.js Image
  */
 export default function ProductGallery({ 
   images, 
@@ -127,13 +118,6 @@ export default function ProductGallery({
   
   // Traitement intelligent des images Firebase
   const displayImages = processFirebaseImages(images || [], imagePaths || []);
-  
-  // Debug pour comprendre ce qui se passe
-  console.log('🔍 ProductGallery Debug:', {
-    'images (URLs complètes)': images,
-    'imagePaths (chemins relatifs - ignorés)': imagePaths,
-    'displayImages (résultat final)': displayImages
-  });
   
   // Navigation vers l'image suivante
   const nextImage = () => {
@@ -172,9 +156,11 @@ export default function ProductGallery({
           alt={`${productName} - Image ${activeIndex + 1}`}
           fill
           priority={priority && activeIndex === 0}
+          quality={85}
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
-          onError={(e) => handleImageError(e, currentImage)}
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         />
         
         {/* Bouton zoom */}
@@ -234,8 +220,11 @@ export default function ProductGallery({
                 alt={`${productName} - Miniature ${index + 1}`}
                 width={80}
                 height={80}
+                quality={75}
                 className="w-full h-full object-cover"
-                onError={(e) => handleImageError(e, image, 80, 80)}
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
               />
             </button>
           ))}
@@ -259,9 +248,11 @@ export default function ProductGallery({
               alt={`${productName} - Vue agrandie`}
               width={1000}
               height={1000}
+              quality={90}
               className="max-w-full max-h-full object-contain"
               priority
-              onError={(e) => handleImageError(e, currentImage, 1000, 1000)}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />
             
             {/* Bouton fermer */}

@@ -51,7 +51,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case 'ADD_ITEM': {
       const { product, quantity = 1 } = action.payload;
       
-      // Vérifier si le produit existe déjà
+      // Vérifier si le produit existe déjà 
       const existingItemIndex = state.items.findIndex(item => item.id === product.id);
       
       if (existingItemIndex > -1) {
@@ -331,6 +331,6 @@ export function useCart() {
 
 // Hook pour obtenir uniquement le résumé (optimisé pour les performances)
 export function useCartSummary() {
-  const { getCartSummary, state } = useCart();
+  const { getCartSummary } = useCart();
   return getCartSummary();
 }

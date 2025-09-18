@@ -1,24 +1,25 @@
 // components/server/CategoryInfo.tsx
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Category } from '@/lib/types';
 
 interface CategoryInfoProps {
   category: Category;
   productCount: number;
   subCategoriesCount: number;
-  isSubCategory?: boolean; // ✅ NOUVEAU : Indique si c'est une sous-catégorie
-  parentCategory?: Category | null; // ✅ NOUVEAU : Catégorie parente pour les sous-catégories
+  isSubCategory?: boolean;
+  parentCategory?: Category | null;
 }
 
 /**
- * ✅ CORRIGÉ : Composant CategoryInfo avec H1 approprié
- * Affiche les informations d'une catégorie ou sous-catégorie avec la bonne hiérarchie de titres
+ * Composant CategoryInfo optimisé pour PageSpeed avec Next.js Image
+ * Affiche les informations d'une catégorie ou sous-catégorie avec optimisations performances
  * 
  * Fonctionnalités :
- * - ✅ H1 principal pour le SEO
- * - ✅ Navigation contextuelle pour sous-catégories  
- * - ✅ Statistiques et informations enrichies
- * - ✅ Design responsive et accessible
+ * - H1 principal pour le SEO
+ * - Navigation contextuelle pour sous-catégories  
+ * - Images optimisées avec Next.js Image
+ * - Design responsive et accessible
  */
 export default function CategoryInfo({ 
   category, 
@@ -29,13 +30,13 @@ export default function CategoryInfo({
 }: CategoryInfoProps) {
   return (
     <div className="text-center space-y-6">
-      {/* ✅ CORRECTION MAJEURE : H1 principal obligatoire pour chaque page */}
+      {/* H1 principal obligatoire pour chaque page */}
       <div className="space-y-3">
         <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
           {category.name}
         </h1>
         
-        {/* ✅ NOUVEAU : Contexte hiérarchique pour les sous-catégories */}
+        {/* Contexte hiérarchique pour les sous-catégories */}
         {isSubCategory && parentCategory && (
           <div className="flex justify-center items-center space-x-2 text-lg">
             <span className="text-gray-500">dans</span>
@@ -61,21 +62,28 @@ export default function CategoryInfo({
         </div>
       )}
 
-      {/* ✅ NOUVEAU : Image de catégorie si disponible */}
+      {/* Image de catégorie optimisée avec Next.js Image */}
       {category.image && (
         <div className="max-w-md mx-auto">
           <div className="relative overflow-hidden rounded-lg shadow-lg">
-            <img
+            <Image
               src={category.image}
               alt={`Illustration ${category.name}`}
+              width={448}
+              height={192}
               className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
+              loading="lazy"
+              quality={85}
+              sizes="(max-width: 768px) 100vw, 448px"
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
           </div>
         </div>
       )}
 
-      {/* ✅ AMÉLIORÉ : Statistiques avec icônes et design moderne */}
+      {/* Statistiques avec icônes et design moderne */}
       <div className="flex justify-center items-center space-x-8">
         {/* Compteur de produits */}
         <div className="flex items-center space-x-3 bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-200">
@@ -110,7 +118,7 @@ export default function CategoryInfo({
         )}
       </div>
 
-      {/* ✅ NOUVEAU : Actions et informations contextuelles */}
+      {/* Actions et informations contextuelles */}
       <div className="space-y-4">
         {/* Badge de statut */}
         {productCount > 0 && (
@@ -122,7 +130,7 @@ export default function CategoryInfo({
           </div>
         )}
 
-        {/* ✅ NOUVEAU : Liens de navigation rapide pour les catégories principales */}
+        {/* Liens de navigation rapide pour les catégories principales */}
         {!isSubCategory && subCategoriesCount > 0 && (
           <div className="pt-2">
             <p className="text-sm text-gray-500 mb-4">
@@ -139,7 +147,7 @@ export default function CategoryInfo({
           </div>
         )}
 
-        {/* ✅ NOUVEAU : Lien de retour pour les sous-catégories */}
+        {/* Lien de retour pour les sous-catégories */}
         {isSubCategory && parentCategory && (
           <div className="pt-2">
             <Link
@@ -155,23 +163,23 @@ export default function CategoryInfo({
         )}
       </div>
 
-      {/* ✅ NOUVEAU : Message d'encouragement selon le contexte */}
+      {/* Message d'encouragement selon le contexte */}
       <div className="pt-4">
         {productCount > 20 ? (
           <p className="text-gray-600 text-sm">
-            🎯 Large sélection disponible • Utilisez les filtres pour trouver exactement ce que vous cherchez
+            Large sélection disponible • Utilisez les filtres pour trouver exactement ce que vous cherchez
           </p>
         ) : productCount > 5 ? (
           <p className="text-gray-600 text-sm">
-            ✨ Collection soigneusement sélectionnée • Découvrez nos recommandations ci-dessous
+            Collection soigneusement sélectionnée • Découvrez nos recommandations ci-dessous
           </p>
         ) : productCount > 0 ? (
           <p className="text-gray-600 text-sm">
-            💎 Sélection exclusive • Chaque produit a été choisi pour sa qualité
+            Sélection exclusive • Chaque produit a été choisi pour sa qualité
           </p>
         ) : (
           <p className="text-gray-500 text-sm">
-            🔄 Nouveaux produits bientôt disponibles • Revenez prochainement
+            Nouveaux produits bientôt disponibles • Revenez prochainement
           </p>
         )}
       </div>
