@@ -7,32 +7,32 @@ import React from 'react';
 const instagramImages = [
   {
     id: 1,
-    src: "/instagram/imageinsta.webp",
+    src: "/instagram/Girl.webp",
     alt: "Transformation capillaire"
   },
   {
     id: 2,
-    src: "/instagram/mvk.png",
+    src: "/instagram/Girl2.webp",
     alt: "Coloration professionnelle"
   },
   {
     id: 3,
-    src: "/instagram/test.png",
+    src: "/instagram/Girl3.webp",
     alt: "Cheveux réparés"
   },
   {
     id: 4,
-    src: "/instagram/beauty.jpg",
+    src: "/instagram/Girl4.webp",
     alt: "Lissage professionnel"
   },
   {
     id: 5,
-    src: "/instagram/imageinsta.webp",
+    src: "/instagram/Girl5.webp",
     alt: "Résultat parfait"
   },
   {
     id: 6,
-    src: "/instagram/beatilux.png",
+    src: "/instagram/Girl6.webp",
     alt: "Cheveux colorés"
   }
 ];
