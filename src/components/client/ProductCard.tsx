@@ -232,7 +232,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           <div className="flex items-center justify-between gap-1 sm:gap-2 mb-1 sm:mb-2">
             {/* Nom de la marque */}
             {brandDisplayName && (
-              <span className="text-[10px] sm:text-xs text-rose-600 font-semibold uppercase tracking-wide truncate flex-1 min-w-0">
+              <span className="text-[10px] sm:text-xs text-rose-500 font-semibold uppercase tracking-wide truncate flex-1 min-w-0">
                 {brandDisplayName}
               </span>
             )}
