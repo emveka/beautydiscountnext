@@ -527,7 +527,7 @@ export default function ProductGrid({
   }
 
   return (
-    <div className="px-4 py-8" data-products-grid>
+    <div className="w-full max-w-[1500px] mx-auto px-4 py-8" data-products-grid>
       
       {/* ✅ NOUVEAU : FILTRES PROMOTIONS */}
       {enablePromotionFilters && (
