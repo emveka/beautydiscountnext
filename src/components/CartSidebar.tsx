@@ -5,11 +5,13 @@ import React, { useEffect } from 'react';
 import { useCart } from '@/lib/contexts/CartContext';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
+import { formatPrice } from '@/lib/firebase-utils';
+import { useRouter } from 'next/navigation';
 
 /**
  * 📱 MOBILE OPTIMIZED CartSidebar
- * ✅ Header réduit, icônes plus petites, espacement optimisé
- * 🎯 Meilleure utilisation de l'espace écran mobile
+ * ✅ Résumé ultra-compact pour maximiser l'espace des produits
+ * 🎯 Meilleure répartition de l'espace écran mobile
  */
 export default function CartSidebar() {
   const { state, closeCart, clearCart } = useCart();
@@ -144,14 +146,14 @@ export default function CartSidebar() {
           </div>
         </div>
 
-        {/* 📱 MODAL MOBILE OPTIMISÉE (<1024px) */}
+        {/* 📱 MODAL MOBILE ULTRA-OPTIMISÉE (<1024px) */}
         <div className="lg:hidden">
           <div
             className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out translate-y-0 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 📱 HEADER MOBILE COMPACTÉ */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white flex-shrink-0">
               <div className="flex items-center gap-1.5">
                 {/* 📱 Icône panier plus petite */}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-rose-600 flex-shrink-0">
@@ -193,8 +195,8 @@ export default function CartSidebar() {
               </div>
             </div>
 
-            {/* 📱 CONTENU MOBILE OPTIMISÉ */}
-            <div className="flex-1 overflow-hidden flex flex-col">
+            {/* 📱 CONTENU MOBILE AVEC RÉPARTITION OPTIMISÉE */}
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
               {items.length === 0 ? (
                 /* 📱 Panier vide mobile compacté */
                 <div className="flex-1 flex items-center justify-center px-4 py-8">
@@ -219,16 +221,18 @@ export default function CartSidebar() {
                 </div>
               ) : (
                 <>
-                  {/* 📱 Liste des articles mobile avec padding réduit */}
-                  <div className="flex-1 overflow-y-auto px-3 py-2 space-y-3">
+                  {/* 📱 ZONE PRODUITS MAXIMISÉE (70% de l'espace disponible) */}
+                  <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-3">
                     {items.map((item) => (
                       <CartItem key={item.id} item={item} />
                     ))}
+                    {/* 📱 Padding bas pour éviter que le dernier produit soit collé au résumé */}
+                    <div className="pb-2"></div>
                   </div>
 
-                  {/* 📱 Résumé mobile avec séparateur discret */}
-                  <div className="border-t border-gray-200">
-                    <CartSummary />
+                  {/* 📱 RÉSUMÉ ULTRA-COMPACT - Version mobile spéciale */}
+                  <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50">
+                    <MobileCompactSummary />
                   </div>
                 </>
               )}
@@ -237,5 +241,93 @@ export default function CartSidebar() {
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * 📱 COMPOSANT RÉSUMÉ MOBILE ULTRA-COMPACT
+ * Optimisé pour prendre le minimum d'espace possible
+ */
+function MobileCompactSummary() {
+  const { getCartSummary, closeCart } = useCart();
+  const summary = getCartSummary();
+  const router = useRouter();
+
+  const handleCheckout = () => {
+    closeCart();
+    router.push('/checkout');
+  };
+
+  const handleContinueShopping = () => {
+    closeCart();
+  };
+
+  return (
+    <div className="p-3">
+      {/* 📱 RÉSUMÉ EN UNE LIGNE COMPACTE */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3 text-sm">
+          {/* Nombre d'articles */}
+          <span className="text-gray-600">
+            {summary.itemsCount} article{summary.itemsCount > 1 ? 's' : ''}
+          </span>
+          
+          {/* Économies si applicable */}
+          {summary.savings > 0 && (
+            <span className="text-green-600 font-medium text-xs bg-green-50 px-2 py-1 rounded">
+              -{formatPrice(summary.savings)} économisé
+            </span>
+          )}
+        </div>
+
+        {/* Total principal */}
+        <div className="text-right">
+          <div className="text-lg font-bold text-rose-600">
+            {formatPrice(summary.total)}
+          </div>
+          <div className="text-xs text-gray-500 leading-tight">
+            + frais de port
+          </div>
+        </div>
+      </div>
+
+      {/* 📱 BOUTONS COMPACTS EN LIGNE */}
+      <div className="flex gap-2">
+        {/* Bouton Commander - Priorité */}
+        <button
+          onClick={handleCheckout}
+          disabled={summary.itemsCount === 0}
+          className="flex-1 bg-rose-300 hover:bg-rose-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-black font-bold py-2.5 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center justify-center gap-1"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          Commander
+        </button>
+
+        {/* Bouton Continuer - Secondaire compact */}
+        <button
+          onClick={handleContinueShopping}
+          className="flex-shrink-0 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-medium py-2.5 px-3 rounded-lg transition-colors duration-200 text-sm"
+          title="Continuer mes achats"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* 📱 MESSAGE ENCOURAGEANT ULTRA-COMPACT */}
+      {summary.itemsCount > 0 && (
+        <div className="mt-2 text-center">
+          <p className="text-green-600 text-xs font-medium flex items-center justify-center gap-1">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            En stock - Expédition rapide
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
