@@ -7,6 +7,7 @@ import { useCart } from '@/lib/contexts/CartContext';
 import { formatPrice, getStockStatusClasses } from '@/lib/firebase-utils';
 import type { Product, Category, SubCategory } from '@/lib/types';
 
+// ✅ SUPPRESSION DU CONFLIT DE TYPES - Réutilise la déclaration globale existante
 // Types détaillés pour Google Analytics
 interface GAEventParams {
   currency?: string;
@@ -20,16 +21,8 @@ interface GAEventParams {
   }>;
 }
 
-interface GACommand {
-  (command: 'event', eventName: string, params?: GAEventParams): void;
-  (command: string, ...args: unknown[]): void;
-}
-
-declare global {
-  interface Window {
-    gtag?: GACommand;
-  }
-}
+// ✅ PAS DE REDÉCLARATION - utilise celle de SearchBar.tsx
+// declare global déjà fait dans SearchBar.tsx avec unknown[]
 
 // Icônes SVG intégrées (restent identiques)
 const ShoppingCart = ({ className }: { className?: string }) => (
@@ -73,20 +66,20 @@ interface ProductInfoProps {
   product: Product;
   
   // ✅ NOUVELLES PROPS MULTI-CATÉGORIES
-  categories: Category[];           // 🔄 Tableau de toutes les catégories
-  subCategories: SubCategory[];     // 🔄 Tableau de toutes les sous-catégories
+  categories: Category[];           // 📄 Tableau de toutes les catégories
+  subCategories: SubCategory[];     // 📄 Tableau de toutes les sous-catégories
   
   // ✅ PROPS DE RÉTROCOMPATIBILITÉ (optionnelles)
-  primaryCategory?: Category | null;      // 🔄 Catégorie principale pour rétrocompatibilité
-  primarySubCategory?: SubCategory | null; // 🔄 Sous-catégorie principale pour rétrocompatibilité
+  primaryCategory?: Category | null;      // 📄 Catégorie principale pour rétrocompatibilité
+  primarySubCategory?: SubCategory | null; // 📄 Sous-catégorie principale pour rétrocompatibilité
   
   // ✅ PROPS EXISTANTES (inchangées)
   discount: number | null;
   isOnSale: boolean;
   
   // 🆕 PROPS HÉRITÉES (pour compatibilité avec l'ancien code)
-  category?: Category | null;       // 🔄 Déprécié mais supporté
-  subCategory?: SubCategory | null; // 🔄 Déprécié mais supporté
+  category?: Category | null;       // 📄 Déprécié mais supporté
+  subCategory?: SubCategory | null; // 📄 Déprécié mais supporté
 }
 
 export default function ProductInfo({ 
@@ -95,8 +88,8 @@ export default function ProductInfo({
   subCategories = [],
   primaryCategory = null,
   primarySubCategory = null,
-  category = null,    // 🔄 Rétrocompatibilité
-  subCategory = null, // 🔄 Rétrocompatibilité
+  category = null,    // 📄 Rétrocompatibilité
+  subCategory = null, // 📄 Rétrocompatibilité
   discount, 
   isOnSale 
 }: ProductInfoProps) {
@@ -128,7 +121,7 @@ export default function ProductInfo({
       setCartSuccess(true);
       setTimeout(() => setCartSuccess(false), 3000);
       
-      // Analytics - Track add to cart
+      // ✅ Analytics - Track add to cart (utilise la déclaration globale)
       if (typeof window !== 'undefined' && window.gtag) {
         window.gtag('event', 'add_to_cart', {
           currency: 'MAD',
@@ -140,7 +133,7 @@ export default function ProductInfo({
             quantity: quantity,
             price: product.price
           }]
-        });
+        } as GAEventParams);
       }
       
     } catch (error) {
@@ -165,7 +158,7 @@ export default function ProductInfo({
         router.push('/checkout');
       }, 800);
       
-      // Analytics - Track purchase intent
+      // ✅ Analytics - Track purchase intent (utilise la déclaration globale)
       if (typeof window !== 'undefined' && window.gtag) {
         window.gtag('event', 'begin_checkout', {
           currency: 'MAD',
@@ -177,7 +170,7 @@ export default function ProductInfo({
             quantity: quantity,
             price: product.price
           }]
-        });
+        } as GAEventParams);
       }
       
     } catch (error) {
@@ -606,7 +599,7 @@ export default function ProductInfo({
                     <button
                       onClick={handleBuyNow}
                       disabled={isBuying || isAddingToCart}
-                      className="flex-1 bg-black hover:bg-black disabled:bg-gray-400 text-white py-2.5 px-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-1 text-xs min-h-[40px]"
+                      className="flex-1 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white py-2.5 px-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-1 text-xs min-h-[40px]"
                     >
                       {isBuying ? (
                         <>
