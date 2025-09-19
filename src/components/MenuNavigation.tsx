@@ -3,15 +3,10 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 
-// Types pour définir la structure du menu
+// Types pour définir la structure simplifiée du menu
 interface SubMenuItem {
   label: string;
   href: string;
-}
-
-interface MenuCategory {
-  title: string;
-  items: SubMenuItem[];
 }
 
 interface MenuItem {
@@ -19,180 +14,128 @@ interface MenuItem {
   href: string;
   isSpecial?: boolean; // Pour les éléments spéciaux comme "PROMOTIONS"
   specialColor?: string; // Couleur spéciale pour les éléments spéciaux
-  hasMegaMenu?: boolean; // Si l'élément a un mega menu
-  megaMenuCategories?: MenuCategory[]; // Catégories du mega menu
+  hasDropdown?: boolean; // Si l'élément a un menu déroulant
+  subItems?: SubMenuItem[]; // Liste simple des sous-éléments
 }
 
 /**
- * Configuration des catégories pour chaque section du mega menu
+ * Configuration des sous-catégories pour chaque section
+ * Structure simplifiée : juste une liste de liens par catégorie
  */
 
-// CATÉGORIE 1 - Menu avec sous-catégories
-const categorie1Menu: MenuCategory[] = [
-  {
-    title: "Lissages",
-    items: [
-      { label: "Lissage Brésilien", href: "/categories/lissages/lissage-bresilien" },
-      { label: "Lissage au Tanin", href: "/categories/lissages/lissage-au-tanin" },
-      { label: "Kits Mini Lissage", href: "/categories/lissages/kits-mini-lissage" },
-      { label: "Botox Capillaire", href: "/categories/lissages/botox-capillaire" },
-      { label: "Lisseurs", href: "/categories/lissages/botox-capillaire" },
-      { label: "Pack Lissages", href: "/categories/lissages/botox-capillaire" },
-    ]
-  },
-  
+// LISSAGES - Sous-catégories
+const lissagesSubItems: SubMenuItem[] = [
+  { label: "Lissage Brésilien", href: "/categories/lissages/lissage-bresilien" },
+  { label: "Lissage au Tanin", href: "/categories/lissages/lissage-au-tanin" },
+  { label: "Kits Mini Lissage", href: "/categories/lissages/kits-mini-lissage" },
+  { label: "Botox Capillaire", href: "/categories/lissages/botox-capillaire" },
+  { label: "Lisseurs", href: "/categories/lissages/lisseurs" },
+  { label: "Pack Lissages", href: "/categories/lissages/pack-lissages" },
 ];
 
-// CATÉGORIE 2 - Menu avec sous-catégories
-const categorie2Menu: MenuCategory[] = [
-  {
-    title: "Shampoings",
-    items: [
-      { label: "Shampoing Sec", href: "/categories/soins-capillaires/shampoing-sec" },
-      { label: "Shampoing Hydratant", href: "/categories/soins-capillaires/shampoing-hydratant" },
-      { label: "Shampoing Anti-Chute", href: "/categories/soins-capillaires/shampoing-anti-chute" },
-    ]
-  },
-  {
-    title: "Masques & Soins",
-    items: [
-      { label: "Masque Réparateur", href: "/categories/soins-capillaires/masque-reparateur" },
-      { label: "Huiles Capillaires", href: "/categories/soins-capillaires/huiles" },
-      { label: "Sérums", href: "/categories/soins-capillaires/serums" },
-    ]
-  },
+// SOINS CAPILLAIRES - Sous-catégories
+const soinsCapillairesSubItems: SubMenuItem[] = [
+  { label: "Shampoings", href: "/categories/soins-capillaires/shampoings" },
+  { label: "Masques Réparateur", href: "/categories/soins-capillaires/masques" },
+  { label: "Huiles & Sérums", href: "/categories/soins-capillaires/huiles-serums" },
+  { label: "Sprays Protecteurs", href: "/categories/soins-capillaires/sprays-protecteurs" },
+  { label: "Packs Soins Capillaires", href: "/categories/soins-capillaires/packs-soins" },
 ];
 
-// CATÉGORIE 3 - Menu avec sous-catégories
-const categorie3Menu: MenuCategory[] = [
-  {
-    title: "Colorations Permanentes",
-    items: [
-      { label: "Couleurs Naturelles", href: "/categories/coloration/couleurs-naturelles" },
-      { label: "Couleurs Fashion", href: "/categories/coloration/couleurs-fashion" },
-      { label: "Colorations Bio", href: "/categories/coloration/colorations-bio" },
-    ]
-  },
-  {
-    title: "Colorations Temporaires",
-    items: [
-      { label: "Colorations Temporaires", href: "/categories/coloration/temporaires" },
-      { label: "Craies Colorantes", href: "/categories/coloration/craies" },
-      { label: "Sprays Colorants", href: "/categories/coloration/sprays" },
-    ]
-  },
-  {
-    title: "Décolorations",
-    items: [
-      { label: "Poudres Décolorantes", href: "/categories/coloration/poudres-decolorantes" },
-      { label: "Crèmes Décolorantes", href: "/categories/coloration/cremes-decolorantes" },
-      { label: "Oxydants", href: "/categories/coloration/oxydants" },
-    ]
-  }
+// COLORATION - Sous-catégories
+const colorationSubItems: SubMenuItem[] = [
+  { label: "Couleurs Naturelles", href: "/categories/coloration/couleurs-naturelles" },
+  { label: "Couleurs Fashion", href: "/categories/coloration/couleurs-fashion" },
+  { label: "Colorations Bio", href: "/categories/coloration/colorations-bio" },
+  { label: "Colorations Temporaires", href: "/categories/coloration/temporaires" },
+  { label: "Craies Colorantes", href: "/categories/coloration/craies" },
+  { label: "Sprays Colorants", href: "/categories/coloration/sprays" },
+  { label: "Poudres Décolorantes", href: "/categories/coloration/poudres-decolorantes" },
+  { label: "Crèmes Décolorantes", href: "/categories/coloration/cremes-decolorantes" },
+  { label: "Oxydants", href: "/categories/coloration/oxydants" },
 ];
 
-// CATÉGORIE 4 - Menu avec sous-catégories
-const categorie4Menu: MenuCategory[] = [
-  {
-    title: "Soins Visage K-Beauty",
-    items: [
-      { label: "Nettoyants", href: "/categories/cosmetique-coreen/nettoyants" },
-      { label: "Essences & Toners", href: "/categories/cosmetique-coreen/essences" },
-      { label: "Sérums", href: "/categories/cosmetique-coreen/serums" },
-      { label: "Crèmes Hydratantes", href: "/categories/cosmetique-coreen/cremes" },
-    ]
-  },
-  {
-    title: "Masques K-Beauty",
-    items: [
-      { label: "Masques en Tissu", href: "/categories/cosmetique-coreen/masques-tissu" },
-      { label: "Masques à l'Argile", href: "/categories/cosmetique-coreen/masques-argile" },
-      { label: "Patches Hydrogel", href: "/categories/cosmetique-coreen/patches" },
-    ]
-  },
-  {
-    title: "Maquillage K-Beauty",
-    items: [
-      { label: "BB & CC Crèmes", href: "/categories/cosmetique-coreen/bb-cc-cremes" },
-      { label: "Cushions", href: "/categories/cosmetique-coreen/cushions" },
-      { label: "Rouges à Lèvres", href: "/categories/cosmetique-coreen/rouges-levres" },
-    ]
-  }
+// COSMÉTIQUE CORÉEN - Sous-catégories
+const cosmetiqueCoreenSubItems: SubMenuItem[] = [
+  { label: "Nettoyants", href: "/categories/cosmetique-coreen/nettoyants" },
+  { label: "Essences & Toners", href: "/categories/cosmetique-coreen/essences" },
+  { label: "Sérums", href: "/categories/cosmetique-coreen/serums" },
+  { label: "Crèmes Hydratantes", href: "/categories/cosmetique-coreen/cremes" },
+  { label: "Masques en Tissu", href: "/categories/cosmetique-coreen/masques-tissu" },
+  { label: "Masques à l'Argile", href: "/categories/cosmetique-coreen/masques-argile" },
+  { label: "Patches Hydrogel", href: "/categories/cosmetique-coreen/patches" },
+  { label: "BB & CC Crèmes", href: "/categories/cosmetique-coreen/bb-cc-cremes" },
+  { label: "Cushions", href: "/categories/cosmetique-coreen/cushions" },
+  { label: "Rouges à Lèvres", href: "/categories/cosmetique-coreen/rouges-levres" },
 ];
 
-// CATÉGORIE 5 - Menu avec sous-catégories
-const categorie5Menu: MenuCategory[] = [
-  {
-    title: "Nettoyage Visage",
-    items: [
-      { label: "Nettoyants Doux", href: "/categories/soins-visage/nettoyants-doux" },
-      { label: "Exfoliants", href: "/categories/soins-visage/exfoliants" },
-      { label: "Démaquillants", href: "/categories/soins-visage/demaquillants" },
-    ]
-  },
-  {
-    title: "Hydratation",
-    items: [
-      { label: "Crèmes Hydratantes", href: "/categories/soins-visage/cremes-hydratantes" },
-      { label: "Sérums", href: "/categories/soins-visage/serums" },
-      { label: "Huiles Visage", href: "/categories/soins-visage/huiles-visage" },
-    ]
-  },
-  {
-    title: "Anti-Âge",
-    items: [
-      { label: "Crèmes Anti-Rides", href: "/categories/soins-visage/cremes-anti-rides" },
-      { label: "Contour des Yeux", href: "/categories/soins-visage/contour-yeux" },
-      { label: "Masques Anti-Âge", href: "/categories/soins-visage/masques-anti-age" },
-    ]
-  }
+// SOINS VISAGE - Sous-catégories
+const soinsVisageSubItems: SubMenuItem[] = [
+  { label: "Nettoyants Doux", href: "/categories/soins-visage/nettoyants-doux" },
+  { label: "Exfoliants", href: "/categories/soins-visage/exfoliants" },
+  { label: "Démaquillants", href: "/categories/soins-visage/demaquillants" },
+  { label: "Crèmes Hydratantes", href: "/categories/soins-visage/cremes-hydratantes" },
+  { label: "Sérums", href: "/categories/soins-visage/serums" },
+  { label: "Huiles Visage", href: "/categories/soins-visage/huiles-visage" },
+  { label: "Crèmes Anti-Rides", href: "/categories/soins-visage/cremes-anti-rides" },
+  { label: "Contour des Yeux", href: "/categories/soins-visage/contour-yeux" },
+  { label: "Masques Anti-Âge", href: "/categories/soins-visage/masques-anti-age" },
+];
+
+// ACCESSOIRES - Sous-catégories
+const accessoiresSubItems: SubMenuItem[] = [
+  { label: "Brosses et Peignes", href: "/categories/accessoires/brosses-peignes" },
+  { label: "Élastiques et Pinces", href: "/categories/accessoires/elastiques-pinces" },
+  { label: "Sèche-cheveux", href: "/categories/accessoires/seche-cheveux" },
+  { label: "Fers à lisser", href: "/categories/accessoires/fers-lisser" },
+  { label: "Fers à boucler", href: "/categories/accessoires/fers-boucler" },
 ];
 
 /**
  * Configuration du menu principal
- * Définit tous les éléments de navigation avec leurs mega menus respectifs
+ * Structure simplifiée avec liste directe des sous-éléments
  */
 const menuItems: MenuItem[] = [
   {
     label: "LISSAGES",
     href: "/categories/lissages",
-    hasMegaMenu: true,
-    megaMenuCategories: categorie1Menu,
+    hasDropdown: true,
+    subItems: lissagesSubItems,
   },
   {
     label: "SOINS CAPILLAIRES",
     href: "/categories/soins-capillaires",
-    hasMegaMenu: true,
-    megaMenuCategories: categorie2Menu,
+    hasDropdown: true,
+    subItems: soinsCapillairesSubItems,
   },
-  
   {
     label: "COSMÉTIQUE CORÉEN",
     href: "/categories/cosmetique-coreen",
-    hasMegaMenu: true,
-    megaMenuCategories: categorie4Menu,
+    hasDropdown: true,
+    subItems: cosmetiqueCoreenSubItems,
   },
   {
     label: "SOINS VISAGE",
     href: "/categories/soins-visage",
-    hasMegaMenu: true,
-    megaMenuCategories: categorie5Menu,
+    hasDropdown: true,
+    subItems: soinsVisageSubItems,
   },
   {
     label: "COLORATION",
     href: "/categories/coloration",
-    hasMegaMenu: true,
-    megaMenuCategories: categorie3Menu,
+    hasDropdown: true,
+    subItems: colorationSubItems,
   },
-   {
+  {
     label: "ACCESSOIRES",
     href: "/categories/accessoires",
-    hasMegaMenu: true,
-    megaMenuCategories: categorie3Menu,
+    hasDropdown: true,
+    subItems: accessoiresSubItems,
   },
   {
     label: "ONGLERIE",
     href: "/categories/onglerie",
+    // Pas de sous-catégories
   },
   {
     label: "NOUVEAUTÉS",
@@ -209,7 +152,7 @@ const menuItems: MenuItem[] = [
 ];
 
 /**
- * Composant MenuNavigation - Navigation principale avec mega menus
+ * Composant MenuNavigation - Navigation principale avec menus déroulants simplifiés
  * 
  * VERSION RESPONSIVE :
  * - Caché complètement sur mobile (intégré dans le hamburger du Header)
@@ -217,13 +160,13 @@ const menuItems: MenuItem[] = [
  * 
  * Fonctionnalités Desktop :
  * - Navigation horizontale avec catégories principales CENTRÉES
- * - Mega menus au survol avec sous-catégories
+ * - Menus déroulants simples au survol avec liste de sous-catégories
  * - Éléments spéciaux (promotions, nouveautés) dans container séparé à droite
  * - Gestion intelligente des timeouts pour une UX fluide
  * - Fermeture automatique au scroll
  */
 export default function MenuNavigation() {
-  // États pour gérer l'affichage du mega menu
+  // États pour gérer l'affichage du menu déroulant
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   
@@ -232,7 +175,7 @@ export default function MenuNavigation() {
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
-   * Effet pour fermer le mega menu lors du scroll
+   * Effet pour fermer le menu déroulant lors du scroll
    * Améliore l'UX en évitant que le menu reste ouvert pendant la navigation
    */
   useEffect(() => {
@@ -275,7 +218,7 @@ export default function MenuNavigation() {
 
   /**
    * Gestion de la sortie de la souris du menu principal
-   * Délai de 200ms pour permettre de passer au mega menu
+   * Délai de 200ms pour permettre de passer au menu déroulant
    */
   const handleMouseLeave = () => {
     if (hoverTimeoutRef.current) {
@@ -290,10 +233,10 @@ export default function MenuNavigation() {
   };
 
   /**
-   * Gestion de l'entrée dans le mega menu
+   * Gestion de l'entrée dans le menu déroulant
    * Annule la fermeture programmée
    */
-  const handleMegaMenuEnter = () => {
+  const handleDropdownEnter = () => {
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
@@ -302,10 +245,10 @@ export default function MenuNavigation() {
   };
 
   /**
-   * Gestion de la sortie du mega menu
+   * Gestion de la sortie du menu déroulant
    * Fermeture immédiate
    */
-  const handleMegaMenuLeave = () => {
+  const handleDropdownLeave = () => {
     setIsMenuVisible(false);
     setActiveMenu(null);
     
@@ -315,14 +258,14 @@ export default function MenuNavigation() {
     }
   };
 
-  // Trouver l'élément actif pour afficher son mega menu
+  // Trouver l'élément actif pour afficher son menu déroulant
   const activeItem = menuItems.find(item => item.label === activeMenu);
 
   return (
     <>
       {/* Navigation principale - Masquée sur mobile, visible sur desktop */}
       <nav className="bg-rose-300 border-b border-rose-100 relative hidden lg:block">
-        <div className="mx-auto max-w-[1500px] px-4">
+        <div className="mx-auto max-w-[1500px]">
           <div className="flex items-center justify-between">
             
             {/* Menus principaux répartis sur la largeur disponible */}
@@ -334,18 +277,18 @@ export default function MenuNavigation() {
                 <div
                   key={item.label}
                   className="relative"
-                  onMouseEnter={() => item.hasMegaMenu && handleMouseEnter(item.label)}
+                  onMouseEnter={() => item.hasDropdown && handleMouseEnter(item.label)}
                 >
                   <Link
                     href={item.href}
                     className={`px-3 py-3 text-sm font-bold transition-colors whitespace-nowrap flex items-center gap-1 ${
-                      activeMenu === item.label && item.hasMegaMenu
+                      activeMenu === item.label && item.hasDropdown
                         ? 'bg-rose-400 text-black'
                         : 'text-black hover:bg-rose-400'
                     }`}
                   >
                     {item.label}
-                    {item.hasMegaMenu && (
+                    {item.hasDropdown && (
                       <svg 
                         className="w-4 h-4 ml-1" 
                         fill="currentColor" 
@@ -381,33 +324,24 @@ export default function MenuNavigation() {
         </div>
       </nav>
 
-      {/* Mega Menu - Visible uniquement sur desktop */}
-      {isMenuVisible && activeItem && activeItem.hasMegaMenu && (
+      {/* Menu Déroulant Simplifié - Visible uniquement sur desktop */}
+      {isMenuVisible && activeItem && activeItem.hasDropdown && activeItem.subItems && (
         <div 
-          className="hidden lg:block absolute left-0 right-0 bg-white mx-auto max-w-[1500px] shadow-2xl border-t-4 border-rose-300 z-40"
-          onMouseEnter={handleMegaMenuEnter}
-          onMouseLeave={handleMegaMenuLeave}
+          className="hidden lg:block absolute left-0 right-0 bg-white mx-auto max-w-[1500px] shadow-xl border-t-4 border-rose-300 z-40"
+          onMouseEnter={handleDropdownEnter}
+          onMouseLeave={handleDropdownLeave}
         >
-          <div className="mx-auto max-w-[1500px] px-4 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {activeItem.megaMenuCategories?.map((category, index) => (
-                <div key={index} className="space-y-4">
-                  <h3 className="font-bold text-gray-900 text-lg border-b-2 border-rose-300 pb-2">
-                    {category.title}
-                  </h3>
-                  <ul className="space-y-2">
-                    {category.items.map((subItem, subIndex) => (
-                      <li key={subIndex}>
-                        <Link
-                          href={subItem.href}
-                          className="text-gray-700 hover:text-rose-600 hover:underline transition-colors duration-200 block py-1"
-                        >
-                          {subItem.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+          <div className="mx-auto max-w-[1500px] px-4 py-6">
+            {/* Liste simple des sous-catégories en colonnes */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3">
+              {activeItem.subItems.map((subItem, index) => (
+                <Link
+                  key={index}
+                  href={subItem.href}
+                  className="text-gray-900 hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 block py-2 px-3 rounded-md text-[16px] font-medium"
+                >
+                  {subItem.label}
+                </Link>
               ))}
             </div>
           </div>

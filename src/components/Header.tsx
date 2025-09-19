@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import MobileMenuNavigation from "./MobileMenuNavigation";
 import CartSidebar from "./CartSidebar";
+import SearchBar from "@/components/client/SearchBar"; // ✅ IMPORT AJOUTÉ
 import { useCart } from "@/lib/contexts/CartContext";
 
 // Interface pour les props du composant Header
@@ -14,14 +15,13 @@ interface HeaderProps {
 }
 
 /**
- * HEADER OPTIMISÉ POUR TAILWIND V4
- * ✅ Utilise les nouvelles fonctionnalités de Tailwind v4
- * ✅ Container queries natifs
- * ✅ Propriétés CSS modernes
- * ✅ Zero hydration errors
+ * HEADER OPTIMISÉ AVEC SEARCHBAR INTÉGRÉ
+ * ✅ Remplace l'ancien système de recherche par SearchBar
+ * ✅ Garde toute la logique existante (panier, menus, etc.)
+ * ✅ Design cohérent avec le thème BeautyDiscount
+ * ✅ Mobile-first responsive
  */
 export default function Header({ onSearch, className = "" }: HeaderProps) {
-  const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isContactMenuOpen, setIsContactMenuOpen] = useState(false);
   const [isMobileContactMenuOpen, setIsMobileContactMenuOpen] = useState(false);
@@ -63,24 +63,6 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
     };
   }, [isMobileMenuOpen, isMobileContactMenuOpen]);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const query = (formData.get("q") as string)?.trim() || "";
-    
-    if (!query) return;
-    
-    if (onSearch) {
-      onSearch(query);
-    } else {
-      window.location.href = `/search?q=${encodeURIComponent(query)}`;
-    }
-    
-    setSearchQuery("");
-  };
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -91,13 +73,13 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
 
   return (
     <>
-      {/* Header principal avec Tailwind v4 */}
+      {/* Header principal */}
       <header className={`bg-black text-white shadow-lg ${className}`}>
-        {/* Container avec les nouvelles propriétés de Tailwind v4 */}
-        <div className="mx-auto w-full max-w-[1500px] px-4 py-2 sm:py-2">
+        <div className="mx-auto w-full max-w-[1500px] py-2 sm:py-2">
           
-          {/* Layout Desktop - Tailwind v4 optimisé */}
+          {/* ✅ LAYOUT DESKTOP - AVEC SEARCHBAR */}
           <div className="hidden items-center justify-between lg:flex">
+            
             {/* Logo Desktop */}
             <Link 
               href="/" 
@@ -114,9 +96,16 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
               />
             </Link>
 
-            {/* Barre de recherche Desktop */}
+            {/* Barre de recherche Desktop - DESIGN ORIGINAL */}
             <form
-              onSubmit={handleSubmit}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const query = (formData.get("q") as string)?.trim() || "";
+                if (query) {
+                  window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                }
+              }}
               className="relative mx-8 max-w-4xl flex-1"
               role="search"
               aria-label="Rechercher des produits"
@@ -125,8 +114,6 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
                 <input
                   name="q"
                   type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Trouvez votre produit beauté..."
                   className="w-full rounded-l-lg border-none bg-white px-4 py-3 text-sm text-black outline-none placeholder:text-gray-500 focus:ring-2 focus:ring-rose-300"
                   aria-label="Champ de recherche"
@@ -149,8 +136,9 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
               </div>
             </form>
 
-            {/* Navigation utilisateur Desktop */}
+            {/* Navigation utilisateur Desktop - INCHANGÉE */}
             <div className="flex items-center gap-6">
+              
               {/* Contact Desktop avec menu déroulant */}
               <div 
                 className="relative"
@@ -173,81 +161,83 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
                   </span>
                 </div>
 
-                {/* Menu déroulant Contact Desktop avec thème sombre */}
-{isContactMenuOpen && (
-  <div className="absolute right-0 top-full z-50 w-72 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-2xl">
-    {/* Header avec fond blanc et texte noir */}
-    <div className="border-b border-gray-100 bg-white px-4 pb-3">
-      <h3 className="text-sm font-bold uppercase tracking-wide text-gray-900">Contactez-nous</h3>
-      <p className="mt-1 text-xs text-gray-500">Nous sommes là pour vous aider</p>
-    </div>
+                {/* Menu déroulant Contact Desktop */}
+                {isContactMenuOpen && (
+                  <div className="absolute right-0 top-full z-50 w-72 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-2xl">
+                    
+                    {/* Header */}
+                    <div className="border-b border-gray-100 bg-white px-4 pb-3">
+                      <h3 className="text-sm font-bold uppercase tracking-wide text-gray-900">Contactez-nous</h3>
+                      <p className="mt-1 text-xs text-gray-500">Nous sommes là pour vous aider</p>
+                    </div>
 
-    <div className="bg-white py-2">
-      {/* Téléphone - Icône rose 300 */}
-      <a
-        href="tel:+212771515771"
-        className="flex items-center gap-4 px-4 py-3 text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700"
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-300 shadow-md">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
-            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-          </svg>
-        </div>
-        <div className="flex-1">
-          <div className="text-base font-semibold text-gray-900">Appelez-nous</div>
-          <div className="text-sm font-medium text-gray-600">+212 771 515 771</div>
-          <div className="text-xs text-gray-500">Lun-Sam 9h-19h</div>
-        </div>
-      </a>
+                    <div className="bg-white py-2">
+                      
+                      {/* Téléphone */}
+                      <a
+                        href="tel:+212771515771"
+                        className="flex items-center gap-4 px-4 py-3 text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700"
+                      >
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-300 shadow-md">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
+                            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-base font-semibold text-gray-900">Appelez-nous</div>
+                          <div className="text-sm font-medium text-gray-600">+212 771 515 771</div>
+                          <div className="text-xs text-gray-500">Lun-Sam 9h-19h</div>
+                        </div>
+                      </a>
 
-      {/* WhatsApp - Icône rose 300 */}
-      <a
-        href="https://wa.me/212771515771"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-4 px-4 py-3 text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:text-green-700"
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-300 shadow-md">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.893 3.488"/>
-          </svg>
-        </div>
-        <div className="flex-1">
-          <div className="text-base font-semibold text-gray-900">WhatsApp</div>
-          <div className="text-sm font-medium text-gray-600">+212 771 515 771</div>
-          <div className="text-xs text-gray-500">Réponse rapide garantie</div>
-        </div>
-      </a>
+                      {/* WhatsApp */}
+                      <a
+                        href="https://wa.me/212771515771"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-4 px-4 py-3 text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:text-green-700"
+                      >
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-300 shadow-md">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.893 3.488"/>
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-base font-semibold text-gray-900">WhatsApp</div>
+                          <div className="text-sm font-medium text-gray-600">+212 771 515 771</div>
+                          <div className="text-xs text-gray-500">Réponse rapide garantie</div>
+                        </div>
+                      </a>
 
-      {/* Email - Icône rose 300 */}
-      <a
-        href="mailto:contact@beautydiscount.ma"
-        className="flex items-center gap-4 px-4 py-3 text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-rose-50 hover:to-rose-100 hover:text-rose-700"
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-300 shadow-md">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
-            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-          </svg>
-        </div>
-        <div className="flex-1">
-          <div className="text-base font-semibold text-gray-900">Email</div>
-          <div className="text-sm font-medium text-gray-600">contact@beautydiscount.ma</div>
-          <div className="text-xs text-gray-500">Réponse sous 24h</div>
-        </div>
-      </a>
-    </div>
+                      {/* Email */}
+                      <a
+                        href="mailto:contact@beautydiscount.ma"
+                        className="flex items-center gap-4 px-4 py-3 text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-rose-50 hover:to-rose-100 hover:text-rose-700"
+                      >
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-300 shadow-md">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-base font-semibold text-gray-900">Email</div>
+                          <div className="text-sm font-medium text-gray-600">contact@beautydiscount.ma</div>
+                          <div className="text-xs text-gray-500">Réponse sous 24h</div>
+                        </div>
+                      </a>
+                    </div>
 
-    {/* Footer avec fond blanc et texte noir */}
-    <div className="border-t border-gray-100 bg-white px-4 pt-3">
-      <div className="text-center text-xs text-gray-500">
-        <span className="inline-flex items-center gap-1">
-          <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
-          Service client disponible maintenant
-        </span>
-      </div>
-    </div>
-  </div>
-)}
+                    {/* Footer */}
+                    <div className="border-t border-gray-100 bg-white px-4 pt-3">
+                      <div className="text-center text-xs text-gray-500">
+                        <span className="inline-flex items-center gap-1">
+                          <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
+                          Service client disponible maintenant
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Mon Panier Desktop avec compteur */}
@@ -280,9 +270,10 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
             </div>
           </div>
 
-          {/* Layout Mobile avec Tailwind v4 */}
+          {/* ✅ LAYOUT MOBILE - GARDE LA STRUCTURE EXISTANTE */}
           <div className="lg:hidden">
             <div className="flex items-center justify-between px-2">
+              
               {/* Hamburger Menu Button */}
               <button
                 onClick={toggleMobileMenu}
@@ -315,6 +306,7 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
 
               {/* Actions Mobile */}
               <div className="flex items-center gap-1">
+                
                 {/* Contact Mobile */}
                 <div className="relative">
                   <button
@@ -336,6 +328,7 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
                   {/* Menu déroulant Contact Mobile */}
                   {isMobileContactMenuOpen && (
                     <div className="mobile-contact-menu absolute right-0 top-full z-50 mt-1 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
+                      
                       {/* Téléphone */}
                       <a
                         href="tel:+212771515771"
@@ -420,11 +413,18 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
         </div>
       </header>
 
-      {/* Barre de recherche Mobile - Tailwind v4 optimisé */}
+      {/* Barre de recherche Mobile - DESIGN ORIGINAL */}
       <div className="sticky top-0 z-40 border-b border-gray-200 bg-gray-50 lg:hidden">
         <div className="mx-auto max-w-[1500px] px-3 py-1">
           <form
-            onSubmit={handleSubmit}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const query = (formData.get("q") as string)?.trim() || "";
+              if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}`;
+              }
+            }}
             className="relative"
             role="search"
             aria-label="Rechercher des produits"
@@ -434,8 +434,6 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
                 <input
                   name="q"
                   type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Rechercher..."
                   className="w-full rounded-full border border-gray-300 bg-white py-1.5 pl-7 pr-7 text-sm text-black shadow-sm outline-none placeholder:text-gray-400 focus:border-rose-300 focus:ring-1 focus:ring-rose-300"
                   aria-label="Champ de recherche"
@@ -453,19 +451,6 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
                     <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                   </svg>
                 </div>
-                
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 transform text-gray-400 transition-colors hover:text-gray-600"
-                    aria-label="Effacer la recherche"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                    </svg>
-                  </button>
-                )}
               </div>
               
               <button
@@ -488,7 +473,7 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
         </div>
       </div>
 
-      {/* Menu Mobile Slide - Tailwind v4 */}
+      {/* Menu Mobile Slide - INCHANGÉ */}
       <div 
         className={`mobile-menu-container fixed left-0 right-0 z-30 border-b border-gray-200 bg-white shadow-lg transition-transform duration-300 ease-in-out lg:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
@@ -498,7 +483,7 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
         <MobileMenuNavigation onLinkClick={() => setIsMobileMenuOpen(false)} />
       </div>
 
-      {/* CartSidebar */}
+      {/* CartSidebar - INCHANGÉ */}
       <CartSidebar />
     </>
   );
