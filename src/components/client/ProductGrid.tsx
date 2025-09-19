@@ -1,11 +1,11 @@
-// components/client/ProductGrid.tsx
+// components/client/ProductGrid.tsx - VERSION CORRIGÉE AVEC SUPPORT PROMOTIONS
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import ProductCard from './ProductCard';
 import type { Product, SubCategory } from '@/lib/types';
-import { isProductOnSale } from '@/lib/firebase-utils';
+import { isProductOnSale, calculateDiscount } from '@/lib/firebase-utils';
 
 interface ProductGridProps {
   products: Product[];
@@ -13,10 +13,23 @@ interface ProductGridProps {
   categoryName?: string;
   subCategories?: SubCategory[];
   currentSubCategoryId?: string;
-    showPageTitle?: boolean; // ✅ NOUVEAU : Contrôle l'affichage du H1
+  showPageTitle?: boolean; // ✅ NOUVEAU : Contrôle l'affichage du H1
+  
+  // ✅ NOUVELLES PROPS POUR LES PROMOTIONS
+  showPromotionBadges?: boolean;        // Afficher les badges de promotion
+  defaultSortBy?: ProductSortOption;    // Tri par défaut
+  enablePromotionFilters?: boolean;     // Filtres spécifiques promotions
+  
+  // Props multi-catégories existantes
+  selectedCategoryIds?: string[];
+  selectedSubCategoryIds?: string[];
+  showCategoryTags?: boolean;
+  allowMultipleSelection?: boolean;
+  maxDisplayedCategories?: number;
 }
 
-type SortOption = 'score' | 'price-low' | 'price-high' | 'newest' | 'name' | 'discount';
+// ✅ NOUVELLES OPTIONS DE TRI
+type ProductSortOption = 'score' | 'price-low' | 'price-high' | 'newest' | 'name' | 'discount' | 'savings';
 
 interface Filters {
   inStock: boolean;
@@ -27,6 +40,14 @@ interface Filters {
     min: number;
     max: number;
   };
+}
+
+// ✅ NOUVEAUX FILTRES PROMOTIONS
+interface PromotionFilters {
+  minDiscount: number;
+  maxDiscount: number;
+  hotDealsOnly: boolean;
+  bestDealsOnly: boolean;
 }
 
 interface BrandWithCount {
@@ -114,10 +135,23 @@ export default function ProductGrid({
   categoryName, 
   subCategories = [],
   currentSubCategoryId,
-  showPageTitle = true // ✅ NOUVEAU : Par défaut true pour la rétrocompatibilité 
+  showPageTitle = true, // ✅ Par défaut true pour la rétrocompatibilité
+  
+  // ✅ NOUVELLES PROPS PROMOTIONS
+  showPromotionBadges = false,
+  defaultSortBy = 'score',
+  enablePromotionFilters = false,
+  
+  // Props multi-catégories
+  selectedCategoryIds,
+  selectedSubCategoryIds,
+  showCategoryTags = false,
+  allowMultipleSelection = false,
+  maxDisplayedCategories = 3,
 }: ProductGridProps) {
-  // États
-  const [sortBy, setSortBy] = useState<SortOption>('score');
+  
+  // États existants
+  const [sortBy, setSortBy] = useState<ProductSortOption>(defaultSortBy); // ✅ MODIFIÉ
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<Filters>({
     inStock: false,
@@ -127,9 +161,15 @@ export default function ProductGrid({
     priceRange: { min: 0, max: 0 }
   });
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-
-  // État de chargement initial
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  // ✅ NOUVEAUX ÉTATS PROMOTIONS
+  const [promotionFilters, setPromotionFilters] = useState<PromotionFilters>({
+    minDiscount: 0,
+    maxDiscount: 100,
+    hotDealsOnly: false,
+    bestDealsOnly: false,
+  });
 
   // Calcul des valeurs min/max pour les prix
   const priceRange = useMemo(() => {
@@ -200,29 +240,74 @@ export default function ProductGrid({
     const subCategoryMap = new Map<string, SubCategoryWithCount>();
     
     products.forEach(product => {
-      if (product.subCategoryId) {
-        const existingSubCat = subCategoryMap.get(product.subCategoryId);
+      // ✅ SUPPORT MULTI-CATÉGORIES - Vérifier les nouveaux champs
+      const subCategoryIds = product.subCategoryIds?.length > 0 
+        ? product.subCategoryIds 
+        : (product.subCategoryId ? [product.subCategoryId] : []);
+      
+      subCategoryIds.forEach(subCatId => {
+        const existingSubCat = subCategoryMap.get(subCatId);
         
         if (existingSubCat) {
           existingSubCat.count++;
         } else {
-          const subCatData = subCategories.find(sc => sc.id === product.subCategoryId);
-          const displayName = subCatData?.name || product.subCategoryId;
-          const slug = subCatData?.slug || product.subCategoryId;
+          const subCatData = subCategories.find(sc => sc.id === subCatId);
+          const displayName = subCatData?.name || subCatId;
+          const slug = subCatData?.slug || subCatId;
           
-          subCategoryMap.set(product.subCategoryId, {
-            id: product.subCategoryId,
+          subCategoryMap.set(subCatId, {
+            id: subCatId,
             name: displayName,
             slug: slug,
             count: 1
           });
         }
-      }
+      });
     });
     
     return Array.from(subCategoryMap.values())
       .sort((a, b) => b.count - a.count);
   }, [products, subCategories, currentSubCategoryId]);
+
+  // ✅ FONCTION DE TRI AMÉLIORÉE AVEC NOUVELLES OPTIONS
+  const sortProducts = useCallback((products: Product[], sortOption: ProductSortOption) => {
+    return [...products].sort((a, b) => {
+      switch (sortOption) {
+        case 'discount': {
+          // Tri par pourcentage de remise décroissant
+          const discountA = calculateDiscount(a.price, a.originalPrice) || 0;
+          const discountB = calculateDiscount(b.price, b.originalPrice) || 0;
+          if (discountB !== discountA) {
+            return discountB - discountA;
+          }
+          // En cas d'égalité, trier par score
+          return b.score - a.score;
+        }
+        
+        case 'savings': {
+          // ✅ NOUVEAU : Tri par économies en DH décroissant
+          const savingsA = (a.originalPrice || 0) - a.price;
+          const savingsB = (b.originalPrice || 0) - b.price;
+          if (savingsB !== savingsA) {
+            return savingsB - savingsA;
+          }
+          return b.score - a.score;
+        }
+        
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'newest':
+          return b.createdAt.getTime() - a.createdAt.getTime();
+        case 'name':
+          return a.name.localeCompare(b.name, 'fr', { numeric: true });
+        case 'score':
+        default:
+          return b.score - a.score;
+      }
+    });
+  }, []);
 
   // Fonctions utilitaires
   const getBrandDisplayName = (brandId: string): string => {
@@ -235,10 +320,11 @@ export default function ProductGrid({
     return subCat?.name || subCategoryId;
   };
 
-  // Tri et filtrage
+  // ✅ TRI ET FILTRAGE AMÉLIORÉ AVEC PROMOTIONS
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = [...products];
 
+    // Filtres existants
     if (filters.inStock) {
       filtered = filtered.filter(p => p.stock === "En Stock");
     }
@@ -252,7 +338,14 @@ export default function ProductGrid({
     }
     
     if (filters.subCategories.length > 0 && !currentSubCategoryId) {
-      filtered = filtered.filter(p => p.subCategoryId && filters.subCategories.includes(p.subCategoryId));
+      filtered = filtered.filter(p => {
+        // ✅ SUPPORT MULTI-CATÉGORIES
+        const productSubCatIds = p.subCategoryIds?.length > 0 
+          ? p.subCategoryIds 
+          : (p.subCategoryId ? [p.subCategoryId] : []);
+        
+        return productSubCatIds.some(subCatId => filters.subCategories.includes(subCatId));
+      });
     }
     
     if (filters.priceRange.min > priceRange.min || filters.priceRange.max < priceRange.max) {
@@ -261,26 +354,38 @@ export default function ProductGrid({
       );
     }
 
-    switch (sortBy) {
-      case 'price-low':
-        return filtered.sort((a, b) => a.price - b.price);
-      case 'price-high':
-        return filtered.sort((a, b) => b.price - a.price);
-      case 'newest':
-        return filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-      case 'name':
-        return filtered.sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }));
-      case 'discount':
-        return filtered.sort((a, b) => {
-          const aDiscount = isProductOnSale(a) ? ((a.originalPrice! - a.price) / a.originalPrice!) * 100 : 0;
-          const bDiscount = isProductOnSale(b) ? ((b.originalPrice! - b.price) / b.originalPrice!) * 100 : 0;
-          return bDiscount - aDiscount;
-        });
-      case 'score':
-      default:
-        return filtered.sort((a, b) => b.score - a.score);
+    // ✅ NOUVEAUX FILTRES PROMOTIONS
+    if (enablePromotionFilters) {
+      filtered = filtered.filter(product => {
+        const discount = calculateDiscount(product.price, product.originalPrice) || 0;
+        
+        // Filtre par pourcentage de remise
+        if (discount < promotionFilters.minDiscount || discount > promotionFilters.maxDiscount) {
+          return false;
+        }
+        
+        // Filtre "Hot Deals" (remises >= 30%)
+        if (promotionFilters.hotDealsOnly && discount < 30) {
+          return false;
+        }
+        
+        // Filtre "Best Deals" (top 10% des remises)
+        if (promotionFilters.bestDealsOnly) {
+          const allDiscounts = products
+            .map(p => calculateDiscount(p.price, p.originalPrice) || 0)
+            .sort((a, b) => b - a);
+          const threshold = allDiscounts[Math.floor(allDiscounts.length * 0.1)] || 0;
+          if (discount < threshold) {
+            return false;
+          }
+        }
+        
+        return true;
+      });
     }
-  }, [products, sortBy, filters, priceRange.min, priceRange.max, currentSubCategoryId]);
+
+    return sortProducts(filtered, sortBy);
+  }, [products, sortBy, filters, priceRange.min, priceRange.max, currentSubCategoryId, enablePromotionFilters, promotionFilters, sortProducts]);
 
   // Pagination
   const itemsPerPage = 24;
@@ -288,8 +393,8 @@ export default function ProductGrid({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = filteredAndSortedProducts.slice(startIndex, startIndex + itemsPerPage);
 
-  // Handlers
-  const handleSortChange = (newSort: SortOption) => {
+  // Handlers existants
+  const handleSortChange = (newSort: ProductSortOption) => {
     setSortBy(newSort);
     setCurrentPage(1);
   };
@@ -320,6 +425,7 @@ export default function ProductGrid({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // ✅ NOUVEAU : Reset filtres avec promotions
   const resetFilters = () => {
     setFilters({
       inStock: false,
@@ -328,6 +434,17 @@ export default function ProductGrid({
       subCategories: [],
       priceRange: priceRange
     });
+    
+    // Reset filtres promotions si activés
+    if (enablePromotionFilters) {
+      setPromotionFilters({
+        minDiscount: 0,
+        maxDiscount: 100,
+        hotDealsOnly: false,
+        bestDealsOnly: false,
+      });
+    }
+    
     setCurrentPage(1);
   };
 
@@ -410,7 +527,92 @@ export default function ProductGrid({
   }
 
   return (
-    <div className="px-4 py-8">
+    <div className="px-4 py-8" data-products-grid>
+      
+      {/* ✅ NOUVEAU : FILTRES PROMOTIONS */}
+      {enablePromotionFilters && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center gap-2">
+            🔥 Filtres Promotions
+          </h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {/* Filtre pourcentage de remise */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Remise minimum
+              </label>
+              <select
+                value={promotionFilters.minDiscount}
+                onChange={(e) => setPromotionFilters(prev => ({
+                  ...prev,
+                  minDiscount: Number(e.target.value)
+                }))}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              >
+                <option value={0}>Toutes les remises</option>
+                <option value={10}>10% et plus</option>
+                <option value={20}>20% et plus</option>
+                <option value={30}>30% et plus</option>
+                <option value={40}>40% et plus</option>
+                <option value={50}>50% et plus</option>
+              </select>
+            </div>
+
+            {/* Filtre Hot Deals */}
+            <div className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={promotionFilters.hotDealsOnly}
+                  onChange={(e) => setPromotionFilters(prev => ({
+                    ...prev,
+                    hotDealsOnly: e.target.checked
+                  }))}
+                  className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  🔥 Hot Deals uniquement
+                </span>
+              </label>
+            </div>
+
+            {/* Filtre Best Deals */}
+            <div className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={promotionFilters.bestDealsOnly}
+                  onChange={(e) => setPromotionFilters(prev => ({
+                    ...prev,
+                    bestDealsOnly: e.target.checked
+                  }))}
+                  className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  ⭐ Best Deals uniquement
+                </span>
+              </label>
+            </div>
+
+            {/* Reset filtres promotions */}
+            <div className="flex items-end">
+              <button
+                onClick={() => setPromotionFilters({
+                  minDiscount: 0,
+                  maxDiscount: 100,
+                  hotDealsOnly: false,
+                  bestDealsOnly: false,
+                })}
+                className="text-sm text-red-600 hover:text-red-800 font-medium"
+              >
+                🔄 Réinitialiser
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Header avec titre et contrôles */}
       {showPageTitle && (
@@ -435,9 +637,10 @@ export default function ProductGrid({
               Filtres
             </button>
 
+            {/* ✅ SÉLECTEUR DE TRI AMÉLIORÉ */}
             <select
               value={sortBy}
-              onChange={(e) => handleSortChange(e.target.value as SortOption)}
+              onChange={(e) => handleSortChange(e.target.value as ProductSortOption)}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-rose-500 focus:border-rose-500 bg-white"
             >
               <option value="score">Meilleur score</option>
@@ -446,6 +649,11 @@ export default function ProductGrid({
               <option value="newest">Plus récent</option>
               <option value="name">Nom A-Z</option>
               <option value="discount">Meilleure réduction</option>
+              
+              {/* ✅ NOUVELLES OPTIONS POUR PROMOTIONS */}
+              {enablePromotionFilters && (
+                <option value="savings">Économies décroissantes</option>
+              )}
             </select>
           </div>
         </div>
@@ -473,7 +681,7 @@ export default function ProductGrid({
 
             <select
               value={sortBy}
-              onChange={(e) => handleSortChange(e.target.value as SortOption)}
+              onChange={(e) => handleSortChange(e.target.value as ProductSortOption)}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-rose-500 focus:border-rose-500 bg-white"
             >
               <option value="score">Meilleur score</option>
@@ -482,6 +690,11 @@ export default function ProductGrid({
               <option value="newest">Plus récent</option>
               <option value="name">Nom A-Z</option>
               <option value="discount">Meilleure réduction</option>
+              
+              {/* ✅ NOUVELLES OPTIONS POUR PROMOTIONS */}
+              {enablePromotionFilters && (
+                <option value="savings">Économies décroissantes</option>
+              )}
             </select>
           </div>
         </div>
@@ -491,7 +704,7 @@ export default function ProductGrid({
         
         {/* Sidebar avec filtres (desktop) */}
         <aside className="hidden lg:block w-64 flex-shrink-0">
-          <div className="sticky top-8">
+                      <div className="sticky top-8">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-900">Filtres</h3>
@@ -601,7 +814,10 @@ export default function ProductGrid({
         <main className="flex-1">
           
           {/* Tags des filtres actifs */}
-          {(filters.inStock || filters.onSale || filters.brands.length > 0 || (filters.subCategories.length > 0 && !currentSubCategoryId)) && (
+          {(filters.inStock || filters.onSale || filters.brands.length > 0 || 
+            (filters.subCategories.length > 0 && !currentSubCategoryId) ||
+            (enablePromotionFilters && (promotionFilters.hotDealsOnly || promotionFilters.bestDealsOnly || promotionFilters.minDiscount > 0))
+          ) && (
             <div className="flex flex-wrap gap-2 mb-6">
               {filters.inStock && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose-100 text-rose-700 text-sm rounded-full">
@@ -623,6 +839,49 @@ export default function ProductGrid({
                   <button
                     onClick={() => handleFilterChange({ onSale: false })}
                     className="hover:text-rose-900"
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </span>
+              )}
+
+              {/* Tags filtres promotions */}
+              {enablePromotionFilters && promotionFilters.hotDealsOnly && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">
+                  🔥 Hot Deals
+                  <button
+                    onClick={() => setPromotionFilters(prev => ({ ...prev, hotDealsOnly: false }))}
+                    className="hover:text-red-900"
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </span>
+              )}
+
+              {enablePromotionFilters && promotionFilters.bestDealsOnly && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full">
+                  ⭐ Best Deals
+                  <button
+                    onClick={() => setPromotionFilters(prev => ({ ...prev, bestDealsOnly: false }))}
+                    className="hover:text-yellow-900"
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </span>
+              )}
+
+              {enablePromotionFilters && promotionFilters.minDiscount > 0 && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 text-sm rounded-full">
+                  Remise ≥ {promotionFilters.minDiscount}%
+                  <button
+                    onClick={() => setPromotionFilters(prev => ({ ...prev, minDiscount: 0 }))}
+                    className="hover:text-orange-900"
                   >
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -677,6 +936,8 @@ export default function ProductGrid({
                   key={product.id} 
                   product={product}
                   priority={index < 8}
+                  showPromotionBadge={showPromotionBadges} // ✅ NOUVELLE PROP
+                  showCategoryTags={showCategoryTags}
                 />
               ))}
             </div>
@@ -691,7 +952,10 @@ export default function ProductGrid({
                   Aucun produit trouvé
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Aucun produit ne correspond à vos critères de recherche. Essayez d&apos;ajuster vos filtres.
+                  {enablePromotionFilters 
+                    ? "Aucun produit en promotion ne correspond à vos critères. Essayez d'ajuster vos filtres."
+                    : "Aucun produit ne correspond à vos critères de recherche. Essayez d'ajuster vos filtres."
+                  }
                 </p>
                 <button
                   onClick={resetFilters}
@@ -828,6 +1092,61 @@ export default function ProductGrid({
                   <span className="ml-2 text-sm text-gray-700">En promotion</span>
                 </label>
               </div>
+
+              {/* Filtres promotions mobiles */}
+              {enablePromotionFilters && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Filtres Promotions</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Remise minimum
+                      </label>
+                      <select
+                        value={promotionFilters.minDiscount}
+                        onChange={(e) => setPromotionFilters(prev => ({
+                          ...prev,
+                          minDiscount: Number(e.target.value)
+                        }))}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      >
+                        <option value={0}>Toutes les remises</option>
+                        <option value={10}>10% et plus</option>
+                        <option value={20}>20% et plus</option>
+                        <option value={30}>30% et plus</option>
+                        <option value={40}>40% et plus</option>
+                        <option value={50}>50% et plus</option>
+                      </select>
+                    </div>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={promotionFilters.hotDealsOnly}
+                        onChange={(e) => setPromotionFilters(prev => ({
+                          ...prev,
+                          hotDealsOnly: e.target.checked
+                        }))}
+                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">🔥 Hot Deals uniquement</span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={promotionFilters.bestDealsOnly}
+                        onChange={(e) => setPromotionFilters(prev => ({
+                          ...prev,
+                          bestDealsOnly: e.target.checked
+                        }))}
+                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">⭐ Best Deals uniquement</span>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">
@@ -973,7 +1292,7 @@ export default function ProductGrid({
                 "@id": `https://beautydiscount.ma/products/${product.slug}`,
                 "name": product.name,
                 "description": product.shortDescription || product.description,
-                "image": `https://beautydiscount.ma${product.images[0] || '/api/placeholder/300/300'}`,
+                "image": `https://beautydiscount.ma${product.images?.[0] || product.imagePaths?.[0] || '/api/placeholder/300/300'}`,
                 "sku": product.sku,
                 "offers": {
                   "@type": "Offer",

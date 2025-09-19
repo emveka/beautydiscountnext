@@ -16,15 +16,23 @@ import {
 interface ProductCardProps {
   product: Product;
   priority?: boolean;
+  showPromotionBadge?: boolean; // ✅ NOUVELLE PROP AJOUTÉE
+  showCategoryTags?: boolean;   // ✅ NOUVELLE PROP AJOUTÉE
 }
 
 /**
- * ✅ MOBILE OPTIMIZED ProductCard
+ * ✅ MOBILE OPTIMIZED ProductCard with Promotions Support
  * 📱 Textes, prix et boutons adaptés aux petits écrans
  * 🎯 Padding réduit, tailles responsive, meilleure lisibilité
- * 🔧 NOUVEAU: Espace violet réduit dans la section des boutons
+ * 🔧 NOUVEAU: Support complet des badges promotions
+ * 💰 NOUVEAU: Affichage des économies et prix barrés
  */
-export default function ProductCard({ product, priority = false }: ProductCardProps) {
+export default function ProductCard({ 
+  product, 
+  priority = false,
+  showPromotionBadge = false, // ✅ NOUVELLE PROP
+  showCategoryTags = false    // ✅ NOUVELLE PROP
+}: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -51,6 +59,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const discount = calculateDiscount(product.price, product.originalPrice);
   const isOnSale = isProductOnSale(product);
   const productUrl = `/products/${product.slug}`;
+
+  // ✅ NOUVEAUX CALCULS PROMOTIONS
+  const savings = product.originalPrice ? product.originalPrice - product.price : 0;
+  const isHotDeal = discount && discount >= 30;
 
   const productInCart = isInCart(product.id);
   const quantityInCart = getItemQuantity(product.id);
@@ -129,6 +141,17 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     
     try {
       addItem(product, 1);
+      
+      // ✅ TRACKING SPÉCIAL PROMOTIONS
+      if (showPromotionBadge && isOnSale) {
+        console.log('🔥 Produit en promotion ajouté au panier:', {
+          productName: product.name,
+          discount: discount,
+          savings: savings,
+          isHotDeal: isHotDeal
+        });
+      }
+      
       setTimeout(() => {
         setIsAddingToCart(false);
       }, 500);
@@ -148,7 +171,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   return (
     <article className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group relative flex flex-col">
       
-      {/* 📱 MOBILE: Badges repositionnés plus compacts */}
+      {/* ✅ BADGES REPOSITIONNÉS AVEC SUPPORT PROMOTIONS */}
       <div className="absolute top-1 sm:top-2 left-0 right-0 z-10 flex justify-between items-start px-1 sm:px-2">
         {/* Badges à gauche */}
         <div className="flex flex-col gap-0.5 sm:gap-1">
@@ -187,10 +210,36 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           )}
         </div>
 
-        {/* Badges à droite */}
+        {/* ✅ BADGES PROMOTIONS À DROITE */}
         <div className="flex flex-col gap-0.5 sm:gap-1">
-          {/* Badge de réduction */}
-          {discount && discount > 0 && (
+          {/* Badge de réduction amélioré */}
+          {showPromotionBadge && discount && discount > 0 && (
+            <>
+              {isHotDeal ? (
+                // Badge Hot Deal
+                <span className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-0.5">
+                  <span>🔥</span>
+                  <span>-{discount}%</span>
+                </span>
+              ) : (
+                // Badge promo standard
+                <span className="bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm">
+                  -{discount}%
+                </span>
+              )}
+            </>
+          )}
+
+          {/* ✅ BADGE BEST DEAL pour très grosses remises */}
+          {showPromotionBadge && discount && discount >= 50 && (
+            <span className="bg-yellow-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-0.5">
+              <span>⭐</span>
+              <span className="hidden sm:inline">BEST</span>
+            </span>
+          )}
+
+          {/* Badge de réduction standard (si pas de showPromotionBadge) */}
+          {!showPromotionBadge && discount && discount > 0 && (
             <span className="bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm">
               -{discount}%
             </span>
@@ -250,16 +299,53 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             {product.name}
           </div>
 
-          {/* 📱 MOBILE: Container avec hauteur adaptée */}
+          {/* ✅ TAGS CATÉGORIES (SI ACTIVÉS) */}
+          {showCategoryTags && (product.categoryIds?.length > 0 || product.subCategoryIds?.length > 0) && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {/* Affichage des catégories principales */}
+              {product.categoryIds?.slice(0, 2).map((categoryId, index) => (
+                <span
+                  key={categoryId}
+                  className="bg-blue-100 text-blue-600 px-1.5 py-0.5 text-[9px] sm:text-xs rounded-full"
+                >
+                  Cat {index + 1}
+                </span>
+              ))}
+              {/* Affichage des sous-catégories */}
+              {product.subCategoryIds?.slice(0, 1).map((subCategoryId) => (
+                <span
+                  key={subCategoryId}
+                  className="bg-green-100 text-green-600 px-1.5 py-0.5 text-[9px] sm:text-xs rounded-full"
+                >
+                  Sub
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* ✅ PRIX ET ÉCONOMIES AMÉLIORÉS POUR PROMOTIONS */}
           <div className="h-12 sm:h-16 flex flex-col justify-end space-y-0.5 sm:space-y-1">
             {/* Prix original et économies */}
             <div className="min-h-[1rem] sm:min-h-[1.25rem]">
               {product.originalPrice && isOnSale && (
                 <div className="flex items-center justify-between">
-                  <span className="text-green-600 text-[10px] sm:text-xs font-medium">
-                    <span className="hidden sm:inline">Économisez </span>
-                    <span className="sm:hidden">-</span>
-                    {formatPrice(product.originalPrice - product.price)}
+                  {/* ✅ ÉCONOMIES AMÉLIORÉES POUR PROMOTIONS */}
+                  <span className={`text-[10px] sm:text-xs font-medium ${
+                    showPromotionBadge ? 'text-red-600' : 'text-green-600'
+                  }`}>
+                    {showPromotionBadge ? (
+                      <>
+                        <span className="hidden sm:inline">💰 Économisez </span>
+                        <span className="sm:hidden">💰 -</span>
+                        {formatPrice(savings)}
+                      </>
+                    ) : (
+                      <>
+                        <span className="hidden sm:inline">Économisez </span>
+                        <span className="sm:hidden">-</span>
+                        {formatPrice(savings)}
+                      </>
+                    )}
                   </span>
                   <span className="text-gray-400 line-through text-[10px] sm:text-sm">
                     {formatPrice(product.originalPrice)}
@@ -276,8 +362,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 <span>{product.stock}</span>
               </div>
               
-              {/* 📱 MOBILE: Prix avec taille réduite */}
-              <span className="text-red-600 font-bold text-sm sm:text-lg">
+              {/* ✅ PRIX AMÉLIORÉ POUR PROMOTIONS */}
+              <span className={`font-bold text-sm sm:text-lg ${
+                showPromotionBadge && isOnSale ? 'text-red-600' : 'text-red-600'
+              }`}>
                 {formatPrice(product.price)}
               </span>
             </div>
@@ -285,7 +373,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </div>
       </Link>
 
-      {/* 🎯 ESPACE VIOLET RÉDUIT - Section des boutons d'action optimisée */}
+      {/* 🎯 SECTION DES BOUTONS D'ACTION OPTIMISÉE */}
       <div className="px-2 sm:px-4 pb-1 sm:pb-2">
         <div className="flex gap-1 sm:gap-2">
           {productInCart ? (
@@ -315,7 +403,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               </button>
             </div>
           ) : (
-            /* 🎯 Bouton d'ajout au panier avec hauteur réduite */
+            /* ✅ BOUTON D'AJOUT AU PANIER AVEC STYLE PROMOTION */
             <button 
               onClick={handleAddToCart}
               disabled={product.stock === "Rupture" || isAddingToCart}
@@ -323,8 +411,12 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 product.stock === "Rupture"
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : isAddingToCart
-                  ? 'bg-rose-400 text-black scale-95'
-                  : 'bg-rose-300 hover:bg-rose-400 text-black hover:scale-105'
+                  ? (showPromotionBadge && isOnSale 
+                    ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white scale-95'
+                    : 'bg-rose-400 text-black scale-95')
+                  : (showPromotionBadge && isOnSale
+                    ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white hover:scale-105'
+                    : 'bg-rose-300 hover:bg-rose-400 text-black hover:scale-105')
               }`}
               aria-label={
                 product.stock === "Rupture" 
@@ -334,7 +426,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             >
               {isAddingToCart ? (
                 <>
-                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-black border-t-transparent animate-spin flex-shrink-0" aria-hidden="true" />
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent animate-spin flex-shrink-0" aria-hidden="true" />
                   <span className="hidden sm:inline truncate">Ajout...</span>
                   <span className="sm:hidden">...</span>
                 </>
@@ -348,8 +440,18 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                   <svg width="12" height="12" className="sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                   </svg>
-                  <span className="hidden sm:inline truncate">Ajouter au panier</span>
-                  <span className="sm:hidden truncate">Ajouter</span>
+                  {/* ✅ TEXTE BOUTON ADAPTÉ POUR PROMOTIONS */}
+                  {showPromotionBadge && isOnSale ? (
+                    <>
+                      <span className="hidden sm:inline truncate">Profiter !</span>
+                      <span className="sm:hidden truncate">Profiter</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline truncate">Ajouter au panier</span>
+                      <span className="sm:hidden truncate">Ajouter</span>
+                    </>
+                  )}
                 </>
               )}
             </button>
@@ -380,7 +482,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         )}
       </div>
 
-      {/* Structured data JSON-LD pour le SEO */}
+      {/* ✅ STRUCTURED DATA AMÉLIORÉ AVEC PROMOTIONS */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -400,6 +502,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               "url": `https://beautydiscount.ma${productUrl}`,
               "priceCurrency": "MAD",
               "price": product.price,
+              // ✅ PRIX ORIGINAL POUR PROMOTIONS
+              ...(product.originalPrice && isOnSale && {
+                "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 30 jours
+              }),
               "availability": product.stock === "En Stock" 
                 ? "https://schema.org/InStock" 
                 : product.stock === "Sur Commande"
@@ -409,7 +515,22 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 "@type": "Organization",
                 "name": "BeautyDiscount"
               }
-            }
+            },
+            // ✅ AJOUT INFO PROMOTIONS
+            ...(showPromotionBadge && isOnSale && {
+              "additionalProperty": [
+                {
+                  "@type": "PropertyValue",
+                  "name": "Discount",
+                  "value": `${discount}%`
+                },
+                {
+                  "@type": "PropertyValue", 
+                  "name": "Savings",
+                  "value": `${savings} MAD`
+                }
+              ]
+            })
           })
         }}
       />
