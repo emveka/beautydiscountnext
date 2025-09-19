@@ -1,38 +1,121 @@
-// components/server/ProductSchema.tsx
+// components/server/ProductSchema.tsx - INTERFACE MISE À JOUR MULTI-CATÉGORIES
 import type { Product, Category, SubCategory } from '@/lib/types';
 import { getProductImageUrl } from '@/lib/firebase-utils';
 
+// ✅ INTERFACE MISE À JOUR POUR MULTI-CATÉGORIES
 interface ProductSchemaProps {
   product: Product;
-  category: Category | null;
-  subCategory: SubCategory | null;
+  
+  // ✅ NOUVELLES PROPS MULTI-CATÉGORIES
+  categories: Category[];           // 🔄 Tableau de toutes les catégories
+  subCategories: SubCategory[];     // 🔄 Tableau de toutes les sous-catégories
+  
+  // ✅ PROPS DE RÉTROCOMPATIBILITÉ (optionnelles)
+  primaryCategory?: Category | null;      // 🔄 Catégorie principale pour rétrocompatibilité
+  primarySubCategory?: SubCategory | null; // 🔄 Sous-catégorie principale pour rétrocompatibilité
+  
+  // ✅ PROPS EXISTANTES
   similarProducts: Product[];
+  
+  // 🆕 PROPS HÉRITÉES (pour compatibilité avec l'ancien code)
+  category?: Category | null;       // 🔄 Déprécié mais supporté
+  subCategory?: SubCategory | null; // 🔄 Déprécié mais supporté
 }
 
 /**
- * Composant server ProductSchema - Données structurées Schema.org
+ * Composant server ProductSchema - Données structurées Schema.org avec support multi-catégories
  * 
  * Fonctionnalités :
- * ✅ Schema.org Product complet
- * ✅ Schema.org BreadcrumbList
+ * ✅ Schema.org Product complet avec multi-catégories
+ * ✅ Schema.org BreadcrumbList intelligent
  * ✅ Schema.org Offer avec prix et disponibilité
  * ✅ Schema.org AggregateRating
  * ✅ Schema.org ItemList pour produits similaires
- * ✅ Optimisation SEO e-commerce
+ * ✅ Optimisation SEO e-commerce multi-catégories
  */
 export default function ProductSchema({ 
-  product, 
-  category, 
-  subCategory, 
-  similarProducts 
+  product,
+  categories = [],
+  subCategories = [],
+  primaryCategory = null,
+  primarySubCategory = null,
+  category = null,    // 🔄 Rétrocompatibilité
+  subCategory = null, // 🔄 Rétrocompatibilité
+  similarProducts
 }: ProductSchemaProps) {
+  
+  // ✅ DÉTERMINATION INTELLIGENTE DE LA CATÉGORIE À UTILISER
+  const displayCategory = primaryCategory || category || categories[0] || null;
+  const displaySubCategory = primarySubCategory || subCategory || subCategories[0] || null;
+  
   // Construction de l'URL de l'image principale
   const productImage = getProductImageUrl(product);
   const imageUrl = productImage.startsWith('http') 
     ? productImage 
     : `https://beautydiscount.ma${productImage}`;
   
-  // Schema.org Product principal
+  // ✅ GÉNÉRATION INTELLIGENTE DES CATÉGORIES POUR SCHEMA.ORG
+  const generateCategoryString = () => {
+    if (subCategories.length > 0) {
+      return subCategories[0].name;
+    }
+    if (categories.length > 0) {
+      return categories[0].name;
+    }
+    return displaySubCategory?.name || displayCategory?.name || "Beauté";
+  };
+  
+  // ✅ GÉNÉRATION DES PROPRIÉTÉS ADDITIONNELLES MULTI-CATÉGORIES
+  const generateAdditionalProperties = () => {
+    const properties = [];
+    
+    // Contenance
+    if (product.contenance) {
+      properties.push({
+        "@type": "PropertyValue",
+        "name": "Contenance",
+        "value": product.contenance
+      });
+    }
+    
+    // Référence
+    properties.push({
+      "@type": "PropertyValue",
+      "name": "Référence",
+      "value": product.sku
+    });
+    
+    // Catégories multiples
+    if (categories.length > 1) {
+      properties.push({
+        "@type": "PropertyValue",
+        "name": "Catégories",
+        "value": categories.map(c => c.name).join(", ")
+      });
+    }
+    
+    // Sous-catégories multiples
+    if (subCategories.length > 1) {
+      properties.push({
+        "@type": "PropertyValue",
+        "name": "Sous-catégories", 
+        "value": subCategories.map(s => s.name).join(", ")
+      });
+    }
+    
+    // Indicateur multi-catégories
+    if (categories.length > 1 || subCategories.length > 1) {
+      properties.push({
+        "@type": "PropertyValue",
+        "name": "Classification",
+        "value": "Produit multi-catégories"
+      });
+    }
+    
+    return properties;
+  };
+  
+  // Schema.org Product principal avec support multi-catégories
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -50,22 +133,16 @@ export default function ProductSchema({
       }
     }),
     
-    // Catégorie
-    "category": subCategory?.name || category?.name || "Beauté",
+    // ✅ CATÉGORIE INTELLIGENTE MULTI-CATÉGORIES
+    "category": generateCategoryString(),
     
-    // Caractéristiques additionnelles
-    "additionalProperty": [
-      ...(product.contenance ? [{
-        "@type": "PropertyValue",
-        "name": "Contenance",
-        "value": product.contenance
-      }] : []),
-      {
-        "@type": "PropertyValue",
-        "name": "Référence",
-        "value": product.sku
-      }
-    ],
+    // ✅ CATÉGORIES ADDITIONNELLES (extension Schema.org)
+    ...(categories.length > 1 && {
+      "additionalType": categories.map(c => `https://beautydiscount.ma/categories/${c.slug}`)
+    }),
+    
+    // ✅ PROPRIÉTÉS ADDITIONNELLES ENRICHIES
+    "additionalProperty": generateAdditionalProperties(),
     
     // Offre commerciale
     "offers": {
@@ -130,11 +207,9 @@ export default function ProductSchema({
     ]
   };
   
-  // Schema.org Breadcrumb
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
+  // ✅ BREADCRUMB INTELLIGENT MULTI-CATÉGORIES
+  const generateBreadcrumbSchema = () => {
+    const breadcrumbItems = [
       {
         "@type": "ListItem",
         "position": 1,
@@ -146,26 +221,44 @@ export default function ProductSchema({
         "position": 2,
         "name": "Catégories",
         "item": "https://beautydiscount.ma/categories"
-      },
-      ...(category ? [{
-        "@type": "ListItem",
-        "position": 3,
-        "name": category.name,
-        "item": `https://beautydiscount.ma/categories/${category.slug}`
-      }] : []),
-      ...(subCategory ? [{
-        "@type": "ListItem",
-        "position": category ? 4 : 3,
-        "name": subCategory.name,
-        "item": `https://beautydiscount.ma/categories/${category?.slug}/${subCategory.slug}`
-      }] : []),
-      {
-        "@type": "ListItem",
-        "position": category && subCategory ? 5 : category ? 4 : 3,
-        "name": product.name,
-        "item": `https://beautydiscount.ma/products/${product.slug}`
       }
-    ]
+    ];
+    
+    let currentPosition = 3;
+    
+    // Ajouter la catégorie principale
+    if (displayCategory) {
+      breadcrumbItems.push({
+        "@type": "ListItem",
+        "position": currentPosition++,
+        "name": displayCategory.name,
+        "item": `https://beautydiscount.ma/categories/${displayCategory.slug}`
+      });
+    }
+    
+    // Ajouter la sous-catégorie principale
+    if (displaySubCategory) {
+      breadcrumbItems.push({
+        "@type": "ListItem",
+        "position": currentPosition++,
+        "name": displaySubCategory.name,
+        "item": `https://beautydiscount.ma/categories/${displayCategory?.slug}/${displaySubCategory.slug}`
+      });
+    }
+    
+    // Ajouter le produit
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      "position": currentPosition,
+      "name": product.name,
+      "item": `https://beautydiscount.ma/products/${product.slug}`
+    });
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": breadcrumbItems
+    };
   };
   
   // Schema.org Organization (BeautyDiscount)
@@ -192,40 +285,46 @@ export default function ProductSchema({
     ]
   };
   
-  // Schema.org ItemList pour produits similaires
-  const similarProductsSchema = similarProducts.length > 0 ? {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "name": "Produits similaires",
-    "description": `Produits similaires à ${product.name}`,
-    "numberOfItems": similarProducts.length,
-    "itemListElement": similarProducts.map((item, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "item": {
-        "@type": "Product",
-        "name": item.name,
-        "url": `https://beautydiscount.ma/products/${item.slug}`,
-        "image": getProductImageUrl(item).startsWith('http') 
-          ? getProductImageUrl(item)
-          : `https://beautydiscount.ma${getProductImageUrl(item)}`,
-        "offers": {
-          "@type": "Offer",
-          "price": item.price.toString(),
-          "priceCurrency": "MAD",
-          "availability": getAvailabilitySchema(item.stock)
-        },
-        ...(item.brandName && {
-          "brand": {
-            "@type": "Brand",
-            "name": item.brandName
-          }
-        })
-      }
-    }))
-  } : null;
+  // ✅ SCHEMA ITEMLIST POUR PRODUITS SIMILAIRES ENRICHI
+  const generateSimilarProductsSchema = () => {
+    if (similarProducts.length === 0) return null;
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Produits similaires",
+      "description": `Produits similaires à ${product.name}${categories.length > 1 ? ` dans ${categories.length} catégories` : ''}`,
+      "numberOfItems": similarProducts.length,
+      "itemListElement": similarProducts.map((item, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Product",
+          "name": item.name,
+          "url": `https://beautydiscount.ma/products/${item.slug}`,
+          "image": getProductImageUrl(item).startsWith('http') 
+            ? getProductImageUrl(item)
+            : `https://beautydiscount.ma${getProductImageUrl(item)}`,
+          "offers": {
+            "@type": "Offer",
+            "price": item.price.toString(),
+            "priceCurrency": "MAD",
+            "availability": getAvailabilitySchema(item.stock)
+          },
+          ...(item.brandName && {
+            "brand": {
+              "@type": "Brand",
+              "name": item.brandName
+            }
+          }),
+          // ✅ CATÉGORIE POUR PRODUITS SIMILAIRES
+          "category": item.categoryIds.length > 0 ? "Beauté" : generateCategoryString()
+        }
+      }))
+    };
+  };
   
-  // Schema WebPage pour la page produit
+  // ✅ SCHEMA WEBPAGE ENRICHI MULTI-CATÉGORIES
   const webPageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -242,8 +341,19 @@ export default function ProductSchema({
       "@type": "WebSite",
       "name": "BeautyDiscount",
       "url": "https://beautydiscount.ma"
-    }
+    },
+    // ✅ MENTIONS DES CATÉGORIES MULTIPLES
+    ...(categories.length > 1 && {
+      "mentions": categories.map(cat => ({
+        "@type": "Thing",
+        "name": cat.name,
+        "url": `https://beautydiscount.ma/categories/${cat.slug}`
+      }))
+    })
   };
+
+  const breadcrumbSchema = generateBreadcrumbSchema();
+  const similarProductsSchema = generateSimilarProductsSchema();
 
   return (
     <>
@@ -291,6 +401,31 @@ export default function ProductSchema({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(similarProductsSchema)
+          }}
+        />
+      )}
+      
+      {/* ✅ SCHEMA SPÉCIAL MULTI-CATÉGORIES */}
+      {categories.length > 1 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ItemList",
+              "name": `Catégories de ${product.name}`,
+              "description": `Ce produit appartient à ${categories.length} catégories différentes`,
+              "numberOfItems": categories.length,
+              "itemListElement": categories.map((cat, index) => ({
+                "@type": "ListItem",
+                "position": index + 1,
+                "item": {
+                  "@type": "Thing",
+                  "name": cat.name,
+                  "url": `https://beautydiscount.ma/categories/${cat.slug}`
+                }
+              }))
+            })
           }}
         />
       )}

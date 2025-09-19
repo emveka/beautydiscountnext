@@ -1,4 +1,4 @@
-// app/products/[slug]/page.tsx
+// app/products/[slug]/page.tsx - VERSION MULTI-CATÉGORIES
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 
@@ -11,91 +11,95 @@ import ProductSchema from "@/components/server/ProductSchema";
 
 import { 
   getProductBySlug,
-  getCategoryById,
-  getSubCategoryById,
-  getCategoryProductsWithBrands,
-  getSubCategoryProductsWithBrands,
+
+  getProductsByMultipleCategories,
+  getProductsByMultipleSubCategories,
+  resolveProductContext,
   calculateDiscount,
   formatPrice,
   getProductImageUrl
 } from "@/lib/firebase-utils";
+import { Category, Product, SubCategory } from "@/lib/types";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
 /**
- * Page produit détaillée - Server Component OPTIMISÉ MOBILE
+ * Page produit détaillée - Server Component OPTIMISÉ MULTI-CATÉGORIES
  * 
- * ✅ NOUVELLES OPTIMISATIONS MOBILE :
- * - Espacement réduit sur mobile
- * - Layout adaptatif avec breakpoints précis
- * - Padding optimisé pour le bottom sticky
- * - Conteneurs avec max-width appropriés
- * - Images responsive avec tailles adaptées
+ * ✅ NOUVELLES FONCTIONNALITÉS MULTI-CATÉGORIES :
+ * - Support produits avec plusieurs catégories/sous-catégories
+ * - Breadcrumb intelligent multi-catégories
+ * - Produits similaires basés sur toutes les catégories
+ * - Rétrocompatibilité totale avec anciens produits
+ * - Métadonnées enrichies avec toutes les catégories
  */
 export default async function ProductPage({ params }: ProductPageProps) {
   try {
     const { slug } = await params;
     
-    // Récupération du produit par son slug
+    // Récupération du produit par son slug avec migration automatique
     const product = await getProductBySlug(slug);
     
     if (!product) {
       console.warn(`Produit introuvable pour le slug: ${slug}`);
       notFound();
     }
+
+    console.log(`🔍 Produit chargé:`, {
+      name: product.name,
+      categoriesCount: product.categoryIds.length,
+      subCategoriesCount: product.subCategoryIds.length,
+      categoryIds: product.categoryIds,
+      subCategoryIds: product.subCategoryIds
+    });
     
-    // Récupération en parallèle des données contextuelles
-    const [category, subCategory, relatedProducts] = await Promise.all([
-      getCategoryById(product.categoryId),
-      product.subCategoryId 
-        ? getSubCategoryById(product.subCategoryId) 
-        : Promise.resolve(null),
-      product.subCategoryId
-        ? getSubCategoryProductsWithBrands(product.subCategoryId)
-        : getCategoryProductsWithBrands(product.categoryId)
+    // 🆕 RÉCUPÉRATION MULTI-CATÉGORIES EN PARALLÈLE
+    const [contextResult, relatedProducts] = await Promise.all([
+      // Résolution de toutes les catégories et sous-catégories
+      resolveProductContext(product.categoryIds, product.subCategoryIds),
+      
+      // Produits similaires basés sur toutes les catégories/sous-catégories
+      getRelatedProductsMultiCategories(product)
     ]);
+
+    const { categories, subCategories } = contextResult;
+
+    console.log(`📊 Contexte résolu:`, {
+      categoriesFound: categories.length,
+      subCategoriesFound: subCategories.length,
+      relatedProductsFound: relatedProducts.length
+    });
     
     // Filtrer les produits similaires (exclure le produit actuel, max 8)
     const similarProducts = relatedProducts
       .filter(p => p.id !== product.id)
       .slice(0, 8);
     
-    // Construction du breadcrumb dynamique
-    const breadcrumbItems = [
-      { name: "Accueil", href: "/" },
-      { name: "Catégories", href: "/categories" }
-    ];
+    // 🆕 CONSTRUCTION DU BREADCRUMB MULTI-CATÉGORIES
+    const breadcrumbItems = buildMultiCategoryBreadcrumb(product, categories, subCategories);
     
-    if (category) {
-      breadcrumbItems.push({
-        name: category.name,
-        href: `/categories/${category.slug}`
-      });
-    }
-    
-    if (subCategory) {
-      breadcrumbItems.push({
-        name: subCategory.name,
-        href: `/categories/${category?.slug}/${subCategory.slug}`
-      });
-    }
-    
-    breadcrumbItems.push({
-      name: product.name,
-      href: `/products/${product.slug}`
-    });
-    
-    // Calcul des données d'affichage
+    // Calcul des données d'affichage (inchangé)
     const discount = calculateDiscount(product.price, product.originalPrice);
     const isOnSale = !!(product.originalPrice && product.originalPrice > product.price);
     
-    console.log(`Produit "${product.name}" chargé avec ${similarProducts.length} produits similaires`);
+    // 🆕 SÉLECTION DE LA CATÉGORIE PRINCIPALE POUR L'AFFICHAGE
+    const primaryCategory = categories[0] || null;
+    const primarySubCategory = subCategories[0] || null;
+    
+    console.log(`✅ Page produit multi-catégories préparée:`, {
+      productName: product.name,
+      primaryCategory: primaryCategory?.name,
+      primarySubCategory: primarySubCategory?.name,
+      totalCategories: categories.length,
+      totalSubCategories: subCategories.length,
+      similarProductsCount: similarProducts.length
+    });
     
     return (
       <div className="min-h-screen bg-white">
-        {/* 🎯 BREADCRUMB - Responsive optimisé */}
+        {/* 🎯 BREADCRUMB - Multi-catégories optimisé */}
         <section className="bg-white border-b border-gray-200">
           <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-4">
             <BreadcrumbNav items={breadcrumbItems} />
@@ -118,12 +122,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 />
               </div>
 
-              {/* 🎯 INFORMATIONS PRODUIT - Avec gestion mobile sticky */}
+              {/* 🎯 INFORMATIONS PRODUIT - Multi-catégories */}
               <div className="space-y-4 sm:space-y-6">
                 <ProductInfo 
                   product={product}
-                  category={category}
-                  subCategory={subCategory}
+                  categories={categories}           // 🔄 Nouveau : toutes les catégories
+                  subCategories={subCategories}   // 🔄 Nouveau : toutes les sous-catégories
+                  primaryCategory={primaryCategory}     // 🔄 Rétrocompatibilité
+                  primarySubCategory={primarySubCategory} // 🔄 Rétrocompatibilité
                   discount={discount}
                   isOnSale={isOnSale}
                 />
@@ -132,66 +138,215 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </section>
 
-        {/* 🎯 ONGLETS DÉTAILS - Padding mobile adapté */}
+        {/* 🎯 ONGLETS DÉTAILS - Multi-catégories */}
         <section className="py-4 sm:py-6 lg:py-8 bg-gray-50">
           <div className="w-full max-w-7xl mx-auto px-3 sm:px-4">
             <ProductTabs 
               product={product}
-              category={category}
-              subCategory={subCategory}
+              categories={categories}         // 🔄 Nouveau
+              subCategories={subCategories}  // 🔄 Nouveau
+              primaryCategory={primaryCategory}       // 🔄 Rétrocompatibilité
+              primarySubCategory={primarySubCategory} // 🔄 Rétrocompatibilité
             />
           </div>
         </section>
 
-        {/* 🎯 PRODUITS SIMILAIRES - Section responsive */}
+        {/* 🎯 PRODUITS SIMILAIRES - Multi-catégories intelligents */}
         {similarProducts.length > 0 && (
           <section className="py-6 sm:py-8 lg:py-12 bg-white">
             <div className="w-full max-w-7xl mx-auto px-3 sm:px-4">
-              {/* En-tête de section mobile friendly */}
+              {/* En-tête de section avec contexte multi-catégories */}
               <div className="text-center mb-6 sm:mb-8">
                 <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
                   Produits similaires
                 </h2>
                 <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-2">
-                  Découvrez d&apos;autres produits qui pourraient vous intéresser dans la même catégorie
+                  {buildSimilarProductsDescription(categories, subCategories)}
                 </p>
               </div>
               
               {/* Carrousel de produits similaires */}
               <RelatedProducts 
                 products={similarProducts}
-                title={subCategory 
-                  ? `Autres produits en ${subCategory.name}` 
-                  : `Autres produits en ${category?.name || 'cette catégorie'}`
-                }
-                categorySlug={category?.slug}
+                title={getSimilarProductsTitle(categories, subCategories)}
+                categorySlug={primaryCategory?.slug}
                 currentProductId={product.id}
+                // 🆕 Nouvelles props multi-catégories
+                categories={categories}
+                subCategories={subCategories}
               />
             </div>
           </section>
         )}
 
-        {/* 🎯 PADDING BOTTOM MOBILE pour éviter le chevauchement sticky */}
+        {/* 🆕 AFFICHAGE DES CATÉGORIES MULTIPLES (si plus d'une catégorie) */}
+        {categories.length > 1 && (
+          <section className="py-4 sm:py-6 bg-blue-50 border-t border-blue-100">
+            <div className="w-full max-w-7xl mx-auto px-3 sm:px-4">
+              <div className="text-center">
+                <h3 className="text-sm font-medium text-blue-900 mb-2">
+                  Ce produit appartient à plusieurs catégories :
+                </h3>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {categories.map((category, index) => (
+                    <a
+                      key={category.id}
+                      href={`/categories/${category.slug}`}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
+                    >
+                      {category.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 🎯 PADDING BOTTOM MOBILE */}
         <div className="sm:hidden h-4"></div>
 
-        {/* Données structurées Schema.org */}
+        {/* Données structurées Schema.org multi-catégories */}
         <ProductSchema 
           product={product}
-          category={category}
-          subCategory={subCategory}
+          categories={categories}         // 🔄 Nouveau
+          subCategories={subCategories}  // 🔄 Nouveau
+          primaryCategory={primaryCategory}       // 🔄 Rétrocompatibilité
+          primarySubCategory={primarySubCategory} // 🔄 Rétrocompatibilité
           similarProducts={similarProducts.slice(0, 4)}
         />
       </div>
     );
     
   } catch (error) {
-    console.error("Erreur lors du chargement de la page produit:", error);
+    console.error("❌ Erreur lors du chargement de la page produit multi-catégories:", error);
     notFound();
   }
 }
 
+// ===== FONCTIONS UTILITAIRES MULTI-CATÉGORIES =====
+
 /**
- * ✅ MÉTADONNÉES SEO OPTIMISÉES - Inchangées mais important
+ * 🆕 Récupération intelligente des produits similaires multi-catégories
+ */
+async function getRelatedProductsMultiCategories(product: Product) {
+  try {
+    const relatedProducts: Product[] = [];
+
+    // Stratégie 1: Produits des mêmes sous-catégories (plus spécifique)
+    if (product.subCategoryIds.length > 0) {
+      const subCategoryProducts = await getProductsByMultipleSubCategories(product.subCategoryIds);
+      relatedProducts.push(...subCategoryProducts);
+    }
+
+    // Stratégie 2: Si pas assez de résultats, ajouter des produits des catégories principales
+    if (relatedProducts.length < 12 && product.categoryIds.length > 0) {
+      const categoryProducts = await getProductsByMultipleCategories(product.categoryIds);
+      
+      // Éviter les doublons
+      const existingIds = new Set(relatedProducts.map(p => p.id));
+      const newProducts = categoryProducts.filter(p => !existingIds.has(p.id));
+      
+      relatedProducts.push(...newProducts);
+    }
+
+    // Tri par score décroissant et limitation
+    return relatedProducts
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20); // Plus de produits pour avoir plus de choix après filtrage
+
+  } catch (error) {
+    console.error("❌ Erreur récupération produits similaires multi-catégories:", error);
+    return [];
+  }
+}
+
+/**
+ * 🆕 Construction du breadcrumb intelligent multi-catégories
+ */
+function buildMultiCategoryBreadcrumb(product: Product, categories: Category[], subCategories: SubCategory[]) {
+  const breadcrumbItems = [
+    { name: "Accueil", href: "/" },
+    { name: "Catégories", href: "/categories" }
+  ];
+
+  // Stratégie intelligente pour le breadcrumb :
+  // 1. Si une seule catégorie : breadcrumb classique
+  // 2. Si plusieurs catégories : utiliser la première (ou la plus pertinente)
+  
+  const primaryCategory = categories[0];
+  const primarySubCategory = subCategories.find(sub => 
+    sub.parentId === primaryCategory?.id
+  ) || subCategories[0];
+
+  if (primaryCategory) {
+    breadcrumbItems.push({
+      name: primaryCategory.name,
+      href: `/categories/${primaryCategory.slug}`
+    });
+
+    if (primarySubCategory) {
+      breadcrumbItems.push({
+        name: primarySubCategory.name,
+        href: `/categories/${primaryCategory.slug}/${primarySubCategory.slug}`
+      });
+    }
+  }
+
+  breadcrumbItems.push({
+    name: product.name,
+    href: `/products/${product.slug}`
+  });
+
+  return breadcrumbItems;
+}
+
+/**
+ * 🆕 Génération du titre pour les produits similaires
+ */
+function getSimilarProductsTitle(categories: Category[], subCategories: SubCategory[]): string {
+  if (subCategories.length > 0) {
+    return subCategories.length === 1 
+      ? `Autres produits en ${subCategories[0].name}`
+      : `Autres produits dans ces sous-catégories`;
+  }
+  
+  if (categories.length > 0) {
+    return categories.length === 1
+      ? `Autres produits en ${categories[0].name}`
+      : `Autres produits dans ces catégories`;
+  }
+  
+  return "Produits similaires";
+}
+
+/**
+ * 🆕 Description pour les produits similaires
+ */
+function buildSimilarProductsDescription(categories: Category[], subCategories: SubCategory[]): string {
+  if (subCategories.length > 1) {
+    return `Découvrez d'autres produits dans les sous-catégories ${subCategories.map(s => s.name).join(', ')}`;
+  }
+  
+  if (subCategories.length === 1) {
+    return `Découvrez d'autres produits dans la sous-catégorie ${subCategories[0].name}`;
+  }
+  
+  if (categories.length > 1) {
+    return `Découvrez d'autres produits dans les catégories ${categories.map(c => c.name).join(', ')}`;
+  }
+  
+  if (categories.length === 1) {
+    return `Découvrez d'autres produits dans la catégorie ${categories[0].name}`;
+  }
+  
+  return "Découvrez d'autres produits qui pourraient vous intéresser";
+}
+
+// ===== MÉTADONNÉES SEO MULTI-CATÉGORIES =====
+
+/**
+ * ✅ MÉTADONNÉES SEO OPTIMISÉES MULTI-CATÉGORIES
  */
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   try {
@@ -209,19 +364,17 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       };
     }
 
-    // Récupération du contexte pour enrichir les métadonnées
-    const [category, subCategory] = await Promise.all([
-      getCategoryById(product.categoryId),
-      product.subCategoryId 
-        ? getSubCategoryById(product.subCategoryId)
-        : Promise.resolve(null)
-    ]);
+    // 🆕 RÉCUPÉRATION DU CONTEXTE MULTI-CATÉGORIES
+    const { categories, subCategories } = await resolveProductContext(
+      product.categoryIds, 
+      product.subCategoryIds
+    );
 
-    // Construction du titre SEO optimisé
+    // Construction du titre SEO enrichi avec contexte multi-catégories
     const seoTitle = product.seo?.metaTitle || 
       `${product.name} | ${product.brandName ? product.brandName + ' - ' : ''}BeautyDiscount`;
     
-    // Description enrichie avec contexte
+    // 🆕 DESCRIPTION ENRICHIE MULTI-CATÉGORIES
     let seoDescription = product.seo?.metaDescription;
     
     if (!seoDescription) {
@@ -229,8 +382,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       const contextParts = [];
       
       if (product.brandName) contextParts.push(product.brandName);
-      if (subCategory) contextParts.push(subCategory.name);
-      else if (category) contextParts.push(category.name);
+      
+      // 🔄 Ajout du contexte multi-catégories
+      if (subCategories.length > 0) {
+        contextParts.push(...subCategories.slice(0, 2).map(s => s.name));
+      } else if (categories.length > 0) {
+        contextParts.push(...categories.slice(0, 2).map(c => c.name));
+      }
       
       const priceInfo = product.originalPrice 
         ? `Prix réduit ${formatPrice(product.price)} (était ${formatPrice(product.originalPrice)})`
@@ -238,20 +396,19 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       
       seoDescription = `${baseDescription}${contextParts.length ? ' - ' + contextParts.join(' | ') : ''}. ${priceInfo}. Livraison rapide au Maroc.`;
       
-      // Limiter à 160 caractères pour les métadonnées
       if (seoDescription.length > 160) {
         seoDescription = seoDescription.substring(0, 157) + '...';
       }
     }
 
-    // Mots-clés enrichis avec le contexte
+    // 🆕 MOTS-CLÉS ENRICHIS MULTI-CATÉGORIES
     let keywords = product.seo?.metaKeywords;
     if (!keywords) {
       keywords = [
         product.name,
         ...(product.brandName ? [product.brandName] : []),
-        ...(subCategory ? [subCategory.name] : []),
-        ...(category ? [category.name] : []),
+        ...subCategories.map(s => s.name),
+        ...categories.map(c => c.name),
         ...(product.contenance ? [product.contenance] : []),
         'beauté',
         'cosmétiques',
@@ -260,7 +417,6 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       ];
     }
 
-    // Image principale pour les réseaux sociaux
     const productImage = getProductImageUrl(product);
     const ogImage = productImage.startsWith('http') 
       ? productImage 
@@ -271,7 +427,6 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       description: seoDescription,
       keywords: keywords?.join(', '),
       
-      // Open Graph pour les réseaux sociaux
       openGraph: {
         title: seoTitle,
         description: seoDescription,
@@ -287,7 +442,6 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         ],
       },
 
-      // Twitter Card
       twitter: {
         card: 'summary_large_image',
         title: seoTitle,
@@ -295,21 +449,25 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         images: [ogImage],
       },
 
-      // URL canonique
       alternates: {
         canonical: product.seo?.canonicalUrl || `https://beautydiscount.ma/products/${slug}`,
       },
 
-      // Métadonnées e-commerce
       other: {
         'product:price:amount': product.price.toString(),
         'product:price:currency': 'MAD',
         'product:availability': product.stock === 'En Stock' ? 'in stock' : 'out of stock',
         ...(product.brandName && { 'product:brand': product.brandName }),
         ...(product.sku && { 'product:sku': product.sku }),
+        // 🆕 Métadonnées multi-catégories
+        ...(categories.length > 0 && { 
+          'product:categories': categories.map(c => c.name).join(', ') 
+        }),
+        ...(subCategories.length > 0 && { 
+          'product:subcategories': subCategories.map(s => s.name).join(', ') 
+        }),
       },
 
-      // Robots et indexation
       robots: {
         index: true,
         follow: true,
@@ -324,7 +482,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     };
     
   } catch (error) {
-    console.error("Erreur lors de la génération des métadonnées produit:", error);
+    console.error("❌ Erreur génération métadonnées produit multi-catégories:", error);
     
     return {
       title: "BeautyDiscount - Produits de beauté",
@@ -342,7 +500,7 @@ export async function generateStaticParams() {
     return [];
     
   } catch (error) {
-    console.error("Erreur lors de la génération des paramètres statiques:", error);
+    console.error("❌ Erreur génération paramètres statiques:", error);
     return [];
   }
 }

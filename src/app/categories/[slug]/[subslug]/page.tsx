@@ -101,6 +101,11 @@ export default async function SubCategoryPage({ params }: SubCategoryPageProps) 
 export async function generateMetadata({ params }: SubCategoryPageProps): Promise<Metadata> {
   try {
     const { slug, subslug } = await params;
+
+        // ✅ AJOUTEZ CETTE VÉRIFICATION POUR BLOQUER LES FICHIERS .map
+    if (subslug.endsWith('.js.map') || subslug.endsWith('.map') || subslug.includes('.js')) {
+      notFound();
+    }
     const [parentCategory, subCategory] = await Promise.all([
       getCategoryBySlug(slug),
       getSubCategoryBySlug(subslug, slug)

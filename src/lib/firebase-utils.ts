@@ -1,4 +1,4 @@
-// lib/firebase-utils.ts
+// lib/firebase-utils.ts - VERSION MULTI-CATÉGORIES - PARTIE 1/3
 import { 
   collection, 
   query, 
@@ -7,10 +7,44 @@ import {
   orderBy, 
   limit,
   doc,
-  getDoc
+  getDoc,
+
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { Product, StockStatus, Category, SubCategory, Brand } from "@/lib/types";
+
+// ✅ AJOUTEZ L'INTERFACE ICI
+interface FirestoreProductData {
+  id?: unknown;
+  name?: unknown;
+  slug?: unknown;
+  description?: unknown;
+  shortDescription?: unknown;
+  seo?: {
+    metaTitle?: unknown;
+    metaDescription?: unknown;
+    metaKeywords?: unknown;
+    canonicalUrl?: unknown;
+  };
+  categoryIds?: unknown;
+  categoryId?: unknown;
+  subCategoryIds?: unknown;
+  subCategoryId?: unknown;
+  brandId?: unknown;
+  brandName?: unknown;
+  price?: unknown;
+  originalPrice?: unknown;
+  stock?: unknown;
+  sku?: unknown;
+  images?: unknown;
+  imagePaths?: unknown;
+  contenance?: unknown;
+  badgeText?: unknown;
+  badgeColor?: unknown;
+  score?: unknown;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+}
 
 /**
  * Fonction utilitaire pour convertir les timestamps Firestore
@@ -22,7 +56,6 @@ function convertFirestoreDate(timestamp: unknown): Date {
     return timestamp;
   }
   
-  // Vérification pour les objets avec toDate
   if (timestamp && typeof timestamp === 'object' && 'toDate' in timestamp) {
     const timestampObj = timestamp as { toDate: () => Date };
     if (typeof timestampObj.toDate === 'function') {
@@ -30,7 +63,6 @@ function convertFirestoreDate(timestamp: unknown): Date {
     }
   }
   
-  // Vérification pour les objets avec seconds
   if (timestamp && typeof timestamp === 'object' && 'seconds' in timestamp) {
     const timestampObj = timestamp as { seconds: number };
     if (typeof timestampObj.seconds === 'number') {
@@ -122,7 +154,6 @@ export async function getBrandsMap(brandIds: string[]): Promise<Map<string, stri
   
   return brandsMap;
 }
-
 // ===== FONCTIONS DE GESTION DES CATÉGORIES =====
 
 /**
@@ -376,72 +407,86 @@ export async function getSubCategoryById(subCategoryId: string): Promise<SubCate
     return null;
   }
 }
+// lib/firebase-utils.ts - VERSION MULTI-CATÉGORIES - PARTIE 3A/3
 
-// ===== FONCTIONS DE GESTION DES PRODUITS =====
+// ===== FONCTIONS DE GESTION DES PRODUITS MULTI-CATÉGORIES =====
 
 /**
- * Récupération des produits d'une catégorie avec les noms de marques
+ * MIGRATION AUTOMATIQUE D'UN PRODUIT VERS LA STRUCTURE MULTI-CATÉGORIES
  */
-export async function getCategoryProductsWithBrands(categoryId: string): Promise<Product[]> {
+function migrateProductToMultiCategories(data: FirestoreProductData): Product {
+  return {
+    id: validateString(data.id, ''),
+    name: validateString(data.name, 'Produit sans nom'),
+    slug: validateString(data.slug, data.id as string || ''),
+    description: validateString(data.description),
+    shortDescription: validateString(data.shortDescription) || undefined,
+   
+    seo: data.seo ? {
+  metaTitle: validateString((data.seo as Record<string, unknown>).metaTitle) || undefined,
+  metaDescription: validateString((data.seo as Record<string, unknown>).metaDescription) || undefined,
+  metaKeywords: validateArray((data.seo as Record<string, unknown>).metaKeywords),
+  canonicalUrl: validateString((data.seo as Record<string, unknown>).canonicalUrl) || undefined,
+} : undefined,
+   
+    // MIGRATION AUTOMATIQUE : anciens champs → nouveaux champs multi-catégories
+    categoryIds: validateArray(data.categoryIds) || (data.categoryId ? [validateString(data.categoryId)] : []),
+    subCategoryIds: validateArray(data.subCategoryIds) || (data.subCategoryId ? [validateString(data.subCategoryId)] : []),
+   
+    brandId: validateString(data.brandId) || undefined,
+    brandName: validateString(data.brandName) || undefined,
+   
+    price: validateNumber(data.price, 0),
+    originalPrice: data.originalPrice ? validateNumber(data.originalPrice) : undefined,
+   
+    stock: validateStockStatus(data.stock),
+   
+    sku: validateString(data.sku, data.id as string || ''),
+    images: validateArray(data.images),
+    imagePaths: validateArray(data.imagePaths),
+   
+    contenance: validateString(data.contenance) || undefined,
+    badgeText: validateString(data.badgeText) || undefined,
+    badgeColor: validateString(data.badgeColor) || undefined,
+   
+    score: validateNumber(data.score, 0),
+    createdAt: convertFirestoreDate(data.createdAt),
+    updatedAt: convertFirestoreDate(data.updatedAt),
+  };
+}
+
+/**
+ * RÉCUPÉRATION DES PRODUITS PAR MULTI-CATÉGORIES AVEC NOMS DE MARQUES
+ */
+export async function getProductsByMultipleCategories(categoryIds: string[]): Promise<Product[]> {
   try {
-    if (!categoryId || typeof categoryId !== 'string') {
-      console.error('CategoryId invalide fourni à getCategoryProductsWithBrands');
+    if (!categoryIds.length) {
+      console.warn('Aucune catégorie fournie à getProductsByMultipleCategories');
       return [];
     }
 
+    console.log('Recherche produits multi-catégories:', { categoryIds, count: categoryIds.length });
+
     const productsRef = collection(db, "products");
-    const q = query(productsRef, where("categoryId", "==", categoryId));
+    
+    // REQUÊTE FIRESTORE POUR MULTI-CATÉGORIES
+    // Utilise arrayContainsAny pour trouver les produits qui ont au moins une des catégories
+    const q = query(productsRef, where("categoryIds", "array-contains-any", categoryIds));
     
     const querySnapshot = await getDocs(q);
     
     if (querySnapshot.empty) {
+      console.log('Aucun produit trouvé pour ces catégories');
       return [];
     }
     
     const products: Product[] = [];
     const brandIds = new Set<string>();
     
-    // Première passe : construire les produits et collecter les IDs de marques
     querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      
       try {
-        const product: Product = {
-          id: doc.id,
-          name: validateString(data.name, 'Produit sans nom'),
-          slug: validateString(data.slug, doc.id),
-          description: validateString(data.description),
-          shortDescription: validateString(data.shortDescription) || undefined,
-          
-          seo: data.seo ? {
-            metaTitle: validateString(data.seo.metaTitle) || undefined,
-            metaDescription: validateString(data.seo.metaDescription) || undefined,
-            metaKeywords: validateArray(data.seo.metaKeywords),
-            canonicalUrl: validateString(data.seo.canonicalUrl) || undefined,
-          } : undefined,
-          
-          categoryId: validateString(data.categoryId, categoryId),
-          subCategoryId: validateString(data.subCategoryId) || undefined,
-          brandId: validateString(data.brandId) || undefined,
-          brandName: undefined,
-          
-          price: validateNumber(data.price, 0),
-          originalPrice: data.originalPrice ? validateNumber(data.originalPrice) : undefined,
-          
-          stock: validateStockStatus(data.stock),
-          
-          sku: validateString(data.sku, doc.id),
-          images: validateArray(data.images),
-          imagePaths: validateArray(data.imagePaths),
-          
-          contenance: validateString(data.contenance) || undefined,
-          badgeText: validateString(data.badgeText) || undefined,
-          badgeColor: validateString(data.badgeColor) || undefined,
-          
-          score: validateNumber(data.score, 0),
-          createdAt: convertFirestoreDate(data.createdAt),
-          updatedAt: convertFirestoreDate(data.updatedAt),
-        };
+        const data = doc.data();
+        const product = migrateProductToMultiCategories({ ...data, id: doc.id });
         
         products.push(product);
         
@@ -450,11 +495,11 @@ export async function getCategoryProductsWithBrands(categoryId: string): Promise
         }
         
       } catch (productError) {
-        console.error(`Erreur lors du traitement du produit ${doc.id}:`, productError);
+        console.error(`Erreur lors du traitement du produit multi-catégories ${doc.id}:`, productError);
       }
     });
     
-    // Deuxième passe : récupérer les noms de marques
+    // Récupération des noms de marques
     if (brandIds.size > 0) {
       const brandsMap = await getBrandsMap(Array.from(brandIds));
       
@@ -473,6 +518,172 @@ export async function getCategoryProductsWithBrands(categoryId: string): Promise
       return b.createdAt.getTime() - a.createdAt.getTime();
     });
     
+    console.log('Produits multi-catégories récupérés:', {
+      total: products.length,
+      uniqueBrands: brandIds.size,
+      avgCategoriesPerProduct: products.reduce((sum, p) => sum + p.categoryIds.length, 0) / products.length
+    });
+    
+    return products;
+    
+  } catch (error) {
+    console.error("Erreur lors de la récupération des produits multi-catégories:", error);
+    return [];
+  }
+}
+
+/**
+ * RÉCUPÉRATION DES PRODUITS PAR MULTI-SOUS-CATÉGORIES
+ */
+export async function getProductsByMultipleSubCategories(subCategoryIds: string[]): Promise<Product[]> {
+  try {
+    if (!subCategoryIds.length) {
+      console.warn('Aucune sous-catégorie fournie à getProductsByMultipleSubCategories');
+      return [];
+    }
+
+    console.log('Recherche produits multi-sous-catégories:', { subCategoryIds, count: subCategoryIds.length });
+
+    const productsRef = collection(db, "products");
+    const q = query(productsRef, where("subCategoryIds", "array-contains-any", subCategoryIds));
+    
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      console.log('Aucun produit trouvé pour ces sous-catégories');
+      return [];
+    }
+    
+    const products: Product[] = [];
+    const brandIds = new Set<string>();
+    
+    querySnapshot.forEach((doc) => {
+      try {
+        const data = doc.data();
+        const product = migrateProductToMultiCategories({ ...data, id: doc.id });
+        
+        products.push(product);
+        
+        if (product.brandId) {
+          brandIds.add(product.brandId);
+        }
+        
+      } catch (productError) {
+        console.error(`Erreur lors du traitement du produit multi-sous-catégories ${doc.id}:`, productError);
+      }
+    });
+    
+    // Récupération des noms de marques
+    if (brandIds.size > 0) {
+      const brandsMap = await getBrandsMap(Array.from(brandIds));
+      
+      products.forEach(product => {
+        if (product.brandId && brandsMap.has(product.brandId)) {
+          product.brandName = brandsMap.get(product.brandId);
+        }
+      });
+    }
+    
+    products.sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+    
+    console.log('Produits multi-sous-catégories récupérés:', {
+      total: products.length,
+      avgSubCategoriesPerProduct: products.reduce((sum, p) => sum + p.subCategoryIds.length, 0) / products.length
+    });
+    
+    return products;
+    
+  } catch (error) {
+    console.error("Erreur lors de la récupération des produits multi-sous-catégories:", error);
+    return [];
+  }
+}
+
+/**
+ * MISE À JOUR : Récupération des produits d'une catégorie (avec rétrocompatibilité)
+ */
+export async function getCategoryProductsWithBrands(categoryId: string): Promise<Product[]> {
+  try {
+    if (!categoryId || typeof categoryId !== 'string') {
+      console.error('CategoryId invalide fourni à getCategoryProductsWithBrands');
+      return [];
+    }
+
+    console.log('Recherche produits pour catégorie:', categoryId);
+
+    const productsRef = collection(db, "products");
+    
+    // REQUÊTE HYBRIDE : recherche dans categoryIds (nouveau) ET categoryId (ancien)
+    const queries = [
+      // Nouveaux produits multi-catégories
+      query(productsRef, where("categoryIds", "array-contains", categoryId)),
+      // Anciens produits mono-catégorie (rétrocompatibilité)
+      query(productsRef, where("categoryId", "==", categoryId))
+    ];
+    
+    const queryPromises = queries.map(q => getDocs(q));
+    const queryResults = await Promise.all(queryPromises);
+    
+    const products: Product[] = [];
+    const brandIds = new Set<string>();
+    const seenProductIds = new Set<string>(); // Éviter les doublons
+    
+    // Traitement des résultats de toutes les requêtes
+    queryResults.forEach(querySnapshot => {
+      querySnapshot.forEach((doc) => {
+        // Éviter les doublons
+        if (seenProductIds.has(doc.id)) {
+          return;
+        }
+        seenProductIds.add(doc.id);
+        
+        try {
+          const data = doc.data();
+          const product = migrateProductToMultiCategories({ ...data, id: doc.id });
+          
+          products.push(product);
+          
+          if (product.brandId) {
+            brandIds.add(product.brandId);
+          }
+          
+        } catch (productError) {
+          console.error(`Erreur lors du traitement du produit ${doc.id}:`, productError);
+        }
+      });
+    });
+    
+    // Récupération des noms de marques
+    if (brandIds.size > 0) {
+      const brandsMap = await getBrandsMap(Array.from(brandIds));
+      
+      products.forEach(product => {
+        if (product.brandId && brandsMap.has(product.brandId)) {
+          product.brandName = brandsMap.get(product.brandId);
+        }
+      });
+    }
+    
+    // Tri par score décroissant
+    products.sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+    
+    console.log('Produits de catégorie récupérés:', {
+      categoryId,
+      total: products.length,
+      uniqueBrands: brandIds.size,
+      multiCategoryProducts: products.filter(p => p.categoryIds.length > 1).length
+    });
+    
     return products;
     
   } catch (error) {
@@ -482,7 +693,7 @@ export async function getCategoryProductsWithBrands(categoryId: string): Promise
 }
 
 /**
- * Récupération des produits d'une sous-catégorie avec les noms de marques
+ * MISE À JOUR : Récupération des produits d'une sous-catégorie (avec rétrocompatibilité)
  */
 export async function getSubCategoryProductsWithBrands(subCategoryId: string): Promise<Product[]> {
   try {
@@ -491,68 +702,46 @@ export async function getSubCategoryProductsWithBrands(subCategoryId: string): P
       return [];
     }
 
+    console.log('Recherche produits pour sous-catégorie:', subCategoryId);
+
     const productsRef = collection(db, "products");
-    const q = query(productsRef, where("subCategoryId", "==", subCategoryId));
     
-    const querySnapshot = await getDocs(q);
+    // REQUÊTE HYBRIDE : recherche dans subCategoryIds (nouveau) ET subCategoryId (ancien)
+    const queries = [
+      // Nouveaux produits multi-sous-catégories
+      query(productsRef, where("subCategoryIds", "array-contains", subCategoryId)),
+      // Anciens produits mono-sous-catégorie (rétrocompatibilité)
+      query(productsRef, where("subCategoryId", "==", subCategoryId))
+    ];
     
-    if (querySnapshot.empty) {
-      return [];
-    }
+    const queryPromises = queries.map(q => getDocs(q));
+    const queryResults = await Promise.all(queryPromises);
     
     const products: Product[] = [];
     const brandIds = new Set<string>();
+    const seenProductIds = new Set<string>();
     
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      
-      try {
-        const product: Product = {
-          id: doc.id,
-          name: validateString(data.name, 'Produit sans nom'),
-          slug: validateString(data.slug, doc.id),
-          description: validateString(data.description),
-          shortDescription: validateString(data.shortDescription) || undefined,
-          
-          seo: data.seo ? {
-            metaTitle: validateString(data.seo.metaTitle) || undefined,
-            metaDescription: validateString(data.seo.metaDescription) || undefined,
-            metaKeywords: validateArray(data.seo.metaKeywords),
-            canonicalUrl: validateString(data.seo.canonicalUrl) || undefined,
-          } : undefined,
-          
-          categoryId: validateString(data.categoryId),
-          subCategoryId: validateString(data.subCategoryId, subCategoryId),
-          brandId: validateString(data.brandId) || undefined,
-          brandName: undefined,
-          
-          price: validateNumber(data.price, 0),
-          originalPrice: data.originalPrice ? validateNumber(data.originalPrice) : undefined,
-          
-          stock: validateStockStatus(data.stock),
-          
-          sku: validateString(data.sku, doc.id),
-          images: validateArray(data.images),
-          imagePaths: validateArray(data.imagePaths),
-          
-          contenance: validateString(data.contenance) || undefined,
-          badgeText: validateString(data.badgeText) || undefined,
-          badgeColor: validateString(data.badgeColor) || undefined,
-          
-          score: validateNumber(data.score, 0),
-          createdAt: convertFirestoreDate(data.createdAt),
-          updatedAt: convertFirestoreDate(data.updatedAt),
-        };
-        
-        products.push(product);
-        
-        if (product.brandId) {
-          brandIds.add(product.brandId);
+    queryResults.forEach(querySnapshot => {
+      querySnapshot.forEach((doc) => {
+        if (seenProductIds.has(doc.id)) {
+          return;
         }
+        seenProductIds.add(doc.id);
         
-      } catch (productError) {
-        console.error(`Erreur lors du traitement du produit ${doc.id}:`, productError);
-      }
+        try {
+          const data = doc.data();
+          const product = migrateProductToMultiCategories({ ...data, id: doc.id });
+          
+          products.push(product);
+          
+          if (product.brandId) {
+            brandIds.add(product.brandId);
+          }
+          
+        } catch (productError) {
+          console.error(`Erreur lors du traitement du produit ${doc.id}:`, productError);
+        }
+      });
     });
     
     if (brandIds.size > 0) {
@@ -572,6 +761,12 @@ export async function getSubCategoryProductsWithBrands(subCategoryId: string): P
       return b.createdAt.getTime() - a.createdAt.getTime();
     });
     
+    console.log('Produits de sous-catégorie récupérés:', {
+      subCategoryId,
+      total: products.length,
+      multiSubCategoryProducts: products.filter(p => p.subCategoryIds.length > 1).length
+    });
+    
     return products;
     
   } catch (error) {
@@ -579,9 +774,10 @@ export async function getSubCategoryProductsWithBrands(subCategoryId: string): P
     return [];
   }
 }
+// lib/firebase-utils.ts - VERSION MULTI-CATÉGORIES - PARTIE 3B/3 (FINALE)
 
 /**
- * Récupération d'un produit par son slug avec nom de marque
+ * MISE À JOUR : Récupération d'un produit par son slug avec migration automatique
  */
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   try {
@@ -602,47 +798,19 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     const doc = querySnapshot.docs[0];
     const data = doc.data();
     
-    const product: Product = {
-      id: doc.id,
-      name: validateString(data.name, 'Produit sans nom'),
-      slug: validateString(data.slug, slug),
-      description: validateString(data.description),
-      shortDescription: validateString(data.shortDescription) || undefined,
-      
-      seo: data.seo ? {
-        metaTitle: validateString(data.seo.metaTitle) || undefined,
-        metaDescription: validateString(data.seo.metaDescription) || undefined,
-        metaKeywords: validateArray(data.seo.metaKeywords),
-        canonicalUrl: validateString(data.seo.canonicalUrl) || undefined,
-      } : undefined,
-      
-      categoryId: validateString(data.categoryId),
-      subCategoryId: validateString(data.subCategoryId) || undefined,
-      brandId: validateString(data.brandId) || undefined,
-      brandName: undefined,
-      
-      price: validateNumber(data.price, 0),
-      originalPrice: data.originalPrice ? validateNumber(data.originalPrice) : undefined,
-      
-      stock: validateStockStatus(data.stock),
-      
-      sku: validateString(data.sku, doc.id),
-      images: validateArray(data.images),
-      imagePaths: validateArray(data.imagePaths),
-      
-      contenance: validateString(data.contenance) || undefined,
-      badgeText: validateString(data.badgeText) || undefined,
-      badgeColor: validateString(data.badgeColor) || undefined,
-      
-      score: validateNumber(data.score, 0),
-      createdAt: convertFirestoreDate(data.createdAt),
-      updatedAt: convertFirestoreDate(data.updatedAt),
-    };
+    const product = migrateProductToMultiCategories({ ...data, id: doc.id });
     
     // Récupération du nom de la marque si brandId existe
     if (product.brandId) {
       product.brandName = await getBrandName(product.brandId);
     }
+    
+    console.log('Produit récupéré par slug:', {
+      slug,
+      name: product.name,
+      categoriesCount: product.categoryIds.length,
+      subCategoriesCount: product.subCategoryIds.length
+    });
     
     return product;
     
@@ -653,7 +821,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 }
 
 /**
- * Récupération des produits populaires/recommandés
+ * MISE À JOUR : Récupération des produits populaires avec migration automatique
  */
 export async function getPopularProducts(limitCount: number = 20): Promise<Product[]> {
   try {
@@ -675,45 +843,9 @@ export async function getPopularProducts(limitCount: number = 20): Promise<Produ
     const brandIds = new Set<string>();
     
     querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      
       try {
-        const product: Product = {
-          id: doc.id,
-          name: validateString(data.name, 'Produit sans nom'),
-          slug: validateString(data.slug, doc.id),
-          description: validateString(data.description),
-          shortDescription: validateString(data.shortDescription) || undefined,
-          
-          seo: data.seo ? {
-            metaTitle: validateString(data.seo.metaTitle) || undefined,
-            metaDescription: validateString(data.seo.metaDescription) || undefined,
-            metaKeywords: validateArray(data.seo.metaKeywords),
-            canonicalUrl: validateString(data.seo.canonicalUrl) || undefined,
-          } : undefined,
-          
-          categoryId: validateString(data.categoryId),
-          subCategoryId: validateString(data.subCategoryId) || undefined,
-          brandId: validateString(data.brandId) || undefined,
-          brandName: undefined,
-          
-          price: validateNumber(data.price, 0),
-          originalPrice: data.originalPrice ? validateNumber(data.originalPrice) : undefined,
-          
-          stock: validateStockStatus(data.stock),
-          
-          sku: validateString(data.sku, doc.id),
-          images: validateArray(data.images),
-          imagePaths: validateArray(data.imagePaths),
-          
-          contenance: validateString(data.contenance) || undefined,
-          badgeText: validateString(data.badgeText) || undefined,
-          badgeColor: validateString(data.badgeColor) || undefined,
-          
-          score: validateNumber(data.score, 0),
-          createdAt: convertFirestoreDate(data.createdAt),
-          updatedAt: convertFirestoreDate(data.updatedAt),
-        };
+        const data = doc.data();
+        const product = migrateProductToMultiCategories({ ...data, id: doc.id });
         
         products.push(product);
         
@@ -736,6 +868,11 @@ export async function getPopularProducts(limitCount: number = 20): Promise<Produ
       });
     }
     
+    console.log('Produits populaires récupérés:', {
+      total: products.length,
+      avgCategoriesPerProduct: products.reduce((sum, p) => sum + p.categoryIds.length, 0) / products.length
+    });
+    
     return products;
     
   } catch (error) {
@@ -744,10 +881,10 @@ export async function getPopularProducts(limitCount: number = 20): Promise<Produ
   }
 }
 
-// ===== FONCTIONS UTILITAIRES =====
+// ===== FONCTIONS UTILITAIRES MISES À JOUR =====
 
 /**
- * Récupération des marques utilisées dans une catégorie
+ * MISE À JOUR : Récupération des marques utilisées dans une catégorie (multi-catégories)
  */
 export async function getCategoryBrands(categoryId: string): Promise<Brand[]> {
   try {
@@ -778,6 +915,12 @@ export async function getCategoryBrands(categoryId: string): Promise<Brand[]> {
       productCount: data.count,
     }));
     
+    console.log('Marques de catégorie récupérées:', {
+      categoryId,
+      uniqueBrands: brands.length,
+      totalProducts: products.length
+    });
+    
     return brands.sort((a, b) => (b.productCount || 0) - (a.productCount || 0));
     
   } catch (error) {
@@ -787,52 +930,230 @@ export async function getCategoryBrands(categoryId: string): Promise<Brand[]> {
 }
 
 /**
- * Fonction utilitaire pour résoudre la catégorie et sous-catégorie par leurs IDs
+ * NOUVELLE FONCTION : Récupération des marques utilisées dans plusieurs catégories
  */
-export async function resolveProductContext(categoryId: string, subCategoryId?: string) {
+export async function getMultipleCategoriesBrands(categoryIds: string[]): Promise<Brand[]> {
   try {
-    const promises: [Promise<Category | null>, Promise<SubCategory | null>] = [
-      getCategoryById(categoryId),
-      subCategoryId ? getSubCategoryById(subCategoryId) : Promise.resolve(null)
-    ];
+    if (!categoryIds.length) return [];
+
+    console.log('Recherche marques pour catégories multiples:', categoryIds);
+
+    const products = await getProductsByMultipleCategories(categoryIds);
     
-    const [category, subCategory] = await Promise.all(promises);
+    const brandCounts = new Map<string, { name: string; count: number }>();
     
-    return { category, subCategory };
+    products.forEach(product => {
+      if (product.brandId && product.brandName) {
+        const existing = brandCounts.get(product.brandId);
+        if (existing) {
+          existing.count++;
+        } else {
+          brandCounts.set(product.brandId, {
+            name: product.brandName,
+            count: 1
+          });
+        }
+      }
+    });
+    
+    const brands: Brand[] = Array.from(brandCounts.entries()).map(([brandId, data]) => ({
+      id: brandId,
+      name: data.name,
+      slug: data.name.toLowerCase().replace(/\s+/g, '-'),
+      productCount: data.count,
+    }));
+    
+    console.log('Marques multi-catégories récupérées:', {
+      categoryIds,
+      uniqueBrands: brands.length,
+      totalProducts: products.length
+    });
+    
+    return brands.sort((a, b) => (b.productCount || 0) - (a.productCount || 0));
     
   } catch (error) {
-    console.error("Erreur lors de la résolution du contexte produit:", error);
-    return { category: null, subCategory: null };
+    console.error("Erreur lors de la récupération des marques multi-catégories:", error);
+    return [];
+  }
+}
+
+/**
+ * MISE À JOUR : Fonction utilitaire pour résoudre le contexte produit (multi-catégories)
+ */
+export async function resolveProductContext(
+  categoryIds: string[],
+  subCategoryIds?: string[]
+): Promise<{
+  categories: Category[]
+  subCategories: SubCategory[]
+}> {
+  try {
+    // ✅ SÉPARER LES PROMESSES PAR TYPE
+    const categoryPromises: Promise<Category | null>[] = categoryIds.map(id => getCategoryById(id));
+    const subCategoryPromises: Promise<SubCategory | null>[] = subCategoryIds?.length ? 
+      subCategoryIds.map(id => getSubCategoryById(id)) : [];
+    
+    // ✅ EXÉCUTER LES PROMESSES SÉPARÉMENT
+    const [categoryResults, subCategoryResults] = await Promise.all([
+      Promise.all(categoryPromises),
+      Promise.all(subCategoryPromises)
+    ]);
+    
+    // ✅ FILTRER LES RÉSULTATS AVEC LES BONS TYPES
+    const categories: Category[] = categoryResults.filter((cat): cat is Category => cat !== null);
+    const subCategories: SubCategory[] = subCategoryResults.filter((subCat): subCat is SubCategory => subCat !== null);
+    
+    console.log('Contexte produit multi-catégories résolu:', {
+      categoriesFound: categories.length,
+      categoriesRequested: categoryIds.length,
+      subCategoriesFound: subCategories.length,
+      subCategoriesRequested: subCategoryIds?.length || 0
+    });
+    
+    return { categories, subCategories };
+    
+  } catch (error) {
+    console.error("Erreur lors de la résolution du contexte produit multi-catégories:", error);
+    return { categories: [], subCategories: [] };
+  }
+}
+
+/**
+ * NOUVELLE FONCTION : Recherche de produits par texte avec support multi-catégories
+ */
+export async function searchProductsWithCategories(
+  searchTerm: string, 
+  categoryIds?: string[], 
+  subCategoryIds?: string[],
+  limitCount: number = 20
+): Promise<Product[]> {
+  try {
+    if (!searchTerm.trim()) {
+      console.warn('Terme de recherche vide');
+      return [];
+    }
+
+    console.log('Recherche produits avec catégories:', {
+      searchTerm,
+      categoryIds: categoryIds?.length || 0,
+      subCategoryIds: subCategoryIds?.length || 0,
+      limitCount
+    });
+
+    const productsRef = collection(db, "products");
+    const baseQuery = query(productsRef, limit(limitCount * 2)); // Récupérer plus pour filtrer ensuite
+
+    const querySnapshot = await getDocs(baseQuery);
+    
+    if (querySnapshot.empty) {
+      return [];
+    }
+    
+    const products: Product[] = [];
+    const brandIds = new Set<string>();
+    const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+    
+    querySnapshot.forEach((doc) => {
+      try {
+        const data = doc.data();
+        const product = migrateProductToMultiCategories({ ...data, id: doc.id });
+        
+        // Filtrage par terme de recherche
+        const matchesSearch = 
+          product.name.toLowerCase().includes(normalizedSearchTerm) ||
+          product.description.toLowerCase().includes(normalizedSearchTerm) ||
+          product.slug.toLowerCase().includes(normalizedSearchTerm) ||
+          product.sku.toLowerCase().includes(normalizedSearchTerm) ||
+          (product.shortDescription && product.shortDescription.toLowerCase().includes(normalizedSearchTerm)) ||
+          (product.brandName && product.brandName.toLowerCase().includes(normalizedSearchTerm));
+        
+        if (!matchesSearch) return;
+        
+        // Filtrage par catégories si spécifiées
+        if (categoryIds?.length) {
+          const hasMatchingCategory = product.categoryIds.some(catId => categoryIds.includes(catId));
+          if (!hasMatchingCategory) return;
+        }
+        
+        // Filtrage par sous-catégories si spécifiées
+        if (subCategoryIds?.length) {
+          const hasMatchingSubCategory = product.subCategoryIds.some(subCatId => subCategoryIds.includes(subCatId));
+          if (!hasMatchingSubCategory) return;
+        }
+        
+        products.push(product);
+        
+        if (product.brandId) {
+          brandIds.add(product.brandId);
+        }
+        
+      } catch (productError) {
+        console.error(`Erreur lors du traitement du produit recherché ${doc.id}:`, productError);
+      }
+    });
+    
+    // Récupération des noms de marques
+    if (brandIds.size > 0) {
+      const brandsMap = await getBrandsMap(Array.from(brandIds));
+      
+      products.forEach(product => {
+        if (product.brandId && brandsMap.has(product.brandId)) {
+          product.brandName = brandsMap.get(product.brandId);
+        }
+      });
+    }
+    
+    // Tri par pertinence et score
+    products.sort((a, b) => {
+      // Priorité aux produits qui matchent dans le nom
+      const aNameMatch = a.name.toLowerCase().includes(normalizedSearchTerm);
+      const bNameMatch = b.name.toLowerCase().includes(normalizedSearchTerm);
+      
+      if (aNameMatch && !bNameMatch) return -1;
+      if (!aNameMatch && bNameMatch) return 1;
+      
+      // Puis par score
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+    
+    // Limiter les résultats
+    const limitedResults = products.slice(0, limitCount);
+    
+    console.log('Recherche produits terminée:', {
+      searchTerm,
+      totalFound: products.length,
+      returned: limitedResults.length,
+      avgCategoriesPerResult: limitedResults.reduce((sum, p) => sum + p.categoryIds.length, 0) / limitedResults.length
+    });
+    
+    return limitedResults;
+    
+  } catch (error) {
+    console.error("Erreur lors de la recherche de produits:", error);
+    return [];
   }
 }
 
 // ===== FONCTIONS DE FORMATAGE ET UTILITAIRES =====
 
-/**
- * Fonction utilitaire pour calculer la réduction
- */
 export function calculateDiscount(price: number, originalPrice?: number): number | null {
   if (!originalPrice || originalPrice <= price || price <= 0) {
     return null;
   }
-  
   return Math.round(((originalPrice - price) / originalPrice) * 100);
 }
 
-/**
- * Fonction utilitaire pour formater le prix
- */
 export function formatPrice(price: number, currency = 'DH'): string {
   if (typeof price !== 'number' || isNaN(price)) {
     return `0 ${currency}`;
   }
-  
   return `${price.toLocaleString('fr-FR')} ${currency}`;
 }
 
-/**
- * Fonction pour obtenir le statut CSS du stock
- */
 export function getStockStatusClasses(stock: StockStatus): string {
   switch (stock) {
     case "En Stock":
@@ -846,19 +1167,12 @@ export function getStockStatusClasses(stock: StockStatus): string {
   }
 }
 
-/**
- * Fonction pour vérifier si un produit est en promotion
- */
 export function isProductOnSale(product: Product): boolean {
   return !!(product.originalPrice && product.originalPrice > product.price);
 }
 
-// ===== FONCTIONS DE GESTION D'IMAGES - VERSION SIMPLIFIÉE =====
+// ===== FONCTIONS DE GESTION D'IMAGES SIMPLIFIÉES =====
 
-/**
- * Fonction SIMPLIFIÉE pour obtenir l'URL de la première image du produit
- * Remplace toute la logique complexe précédente
- */
 export function getProductImageUrl(product: Product): string {
   const allImages = [...(product.images || []), ...(product.imagePaths || [])];
   
@@ -866,29 +1180,21 @@ export function getProductImageUrl(product: Product): string {
     if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim()) {
       const cleanUrl = imageUrl.trim();
       
-      // URL complète Firebase Storage ou autre
       if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
         return cleanUrl;
       }
       
-      // Chemin relatif qui commence déjà par /
       if (cleanUrl.startsWith('/')) {
         return cleanUrl;
       }
       
-      // Ajouter le slash manquant pour les chemins relatifs
       return `/${cleanUrl}`;
     }
   }
   
-  // Image par défaut si aucune image valide trouvée
-  return '/api/placeholder/300/300';
+  return '/images/placeholder-300x300.png';
 }
 
-/**
- * Fonction SIMPLIFIÉE pour valider les URLs d'images (pour ProductGallery)
- * Version allégée pour compatibilité avec le code existant
- */
 export function isValidImageUrl(imageUrl: string): boolean {
   if (!imageUrl || typeof imageUrl !== 'string') {
     return false;
@@ -900,7 +1206,6 @@ export function isValidImageUrl(imageUrl: string): boolean {
     return false;
   }
   
-  // Vérifier l'extension (basique)
   const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg'];
   const hasValidExtension = validExtensions.some(ext => 
     cleanUrl.toLowerCase().includes(ext)
@@ -910,7 +1215,6 @@ export function isValidImageUrl(imageUrl: string): boolean {
     return false;
   }
   
-  // URLs complètes valides
   if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
     try {
       new URL(cleanUrl);
@@ -920,19 +1224,13 @@ export function isValidImageUrl(imageUrl: string): boolean {
     }
   }
   
-  // Chemins relatifs valides
   if (cleanUrl.startsWith('/')) {
     return true;
   }
   
-  // Autres chemins relatifs
   return true;
 }
 
-/**
- * Fonction SIMPLIFIÉE pour normaliser les URLs (pour ProductGallery)
- * Version allégée pour compatibilité avec le code existant
- */
 export function normalizeImageUrl(imageUrl: string): string {
   if (!imageUrl || typeof imageUrl !== 'string') {
     return '/api/placeholder/300/300';
@@ -944,19 +1242,94 @@ export function normalizeImageUrl(imageUrl: string): string {
     return '/api/placeholder/300/300';
   }
   
-  // Si c'est déjà une URL complète, on la retourne
   if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
     return cleanUrl;
   }
   
-  // Si c'est un chemin absolu qui commence par /, on le retourne
   if (cleanUrl.startsWith('/')) {
     return cleanUrl;
   }
   
-  // Ajouter le / manquant pour les chemins relatifs
   return `/${cleanUrl}`;
 }
 
+// ===== FONCTIONS UTILITAIRES POUR LES STATISTIQUES MULTI-CATÉGORIES =====
 
-
+/**
+ * NOUVELLE FONCTION : Obtenir les statistiques de répartition des catégories
+ */
+export async function getCategoryDistributionStats(): Promise<{
+  totalProducts: number
+  monoCategory: number
+  multiCategory: number
+  averageCategoriesPerProduct: number
+  maxCategoriesPerProduct: number
+  categoryDistribution: { [key: number]: number }
+}> {
+  try {
+    console.log('Calcul des statistiques de répartition des catégories...');
+    
+    const productsRef = collection(db, "products");
+    const querySnapshot = await getDocs(productsRef);
+    
+    if (querySnapshot.empty) {
+      return {
+        totalProducts: 0,
+        monoCategory: 0,
+        multiCategory: 0,
+        averageCategoriesPerProduct: 0,
+        maxCategoriesPerProduct: 0,
+        categoryDistribution: {}
+      };
+    }
+    
+    const products: Product[] = [];
+    
+    querySnapshot.forEach((doc) => {
+      try {
+        const data = doc.data();
+        const product = migrateProductToMultiCategories({ ...data, id: doc.id });
+        products.push(product);
+      } catch (productError) {
+        console.error(`Erreur traitement produit stats ${doc.id}:`, productError);
+      }
+    });
+    
+    const totalProducts = products.length;
+    const monoCategory = products.filter(p => p.categoryIds.length === 1).length;
+    const multiCategory = products.filter(p => p.categoryIds.length > 1).length;
+    
+    const categoryCounts = products.map(p => p.categoryIds.length);
+    const averageCategoriesPerProduct = categoryCounts.reduce((sum, count) => sum + count, 0) / totalProducts;
+    const maxCategoriesPerProduct = Math.max(...categoryCounts);
+    
+    const categoryDistribution: { [key: number]: number } = {};
+    categoryCounts.forEach(count => {
+      categoryDistribution[count] = (categoryDistribution[count] || 0) + 1;
+    });
+    
+    const stats = {
+      totalProducts,
+      monoCategory,
+      multiCategory,
+      averageCategoriesPerProduct: Math.round(averageCategoriesPerProduct * 100) / 100,
+      maxCategoriesPerProduct,
+      categoryDistribution
+    };
+    
+    console.log('Statistiques de répartition calculées:', stats);
+    
+    return stats;
+    
+  } catch (error) {
+    console.error("Erreur lors du calcul des statistiques:", error);
+    return {
+      totalProducts: 0,
+      monoCategory: 0,
+      multiCategory: 0,
+      averageCategoriesPerProduct: 0,
+      maxCategoriesPerProduct: 0,
+      categoryDistribution: {}
+    };
+  }
+}

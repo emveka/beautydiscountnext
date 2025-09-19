@@ -1,4 +1,4 @@
-// components/client/ProductInfo.tsx
+// components/client/ProductInfo.tsx - INTERFACE MISE À JOUR MULTI-CATÉGORIES
 'use client';
 
 import { useState } from 'react';
@@ -31,13 +31,12 @@ declare global {
   }
 }
 
-// Icônes SVG intégrées
+// Icônes SVG intégrées (restent identiques)
 const ShoppingCart = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6m-8 0V9a2 2 0 012-2h4a2 2 0 012 2v4" />
   </svg>
 );
-
 
 const CreditCard = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,18 +68,35 @@ const Shield = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// ✅ INTERFACE MISE À JOUR POUR MULTI-CATÉGORIES
 interface ProductInfoProps {
   product: Product;
-  category: Category | null;
-  subCategory: SubCategory | null;
+  
+  // ✅ NOUVELLES PROPS MULTI-CATÉGORIES
+  categories: Category[];           // 🔄 Tableau de toutes les catégories
+  subCategories: SubCategory[];     // 🔄 Tableau de toutes les sous-catégories
+  
+  // ✅ PROPS DE RÉTROCOMPATIBILITÉ (optionnelles)
+  primaryCategory?: Category | null;      // 🔄 Catégorie principale pour rétrocompatibilité
+  primarySubCategory?: SubCategory | null; // 🔄 Sous-catégorie principale pour rétrocompatibilité
+  
+  // ✅ PROPS EXISTANTES (inchangées)
   discount: number | null;
   isOnSale: boolean;
+  
+  // 🆕 PROPS HÉRITÉES (pour compatibilité avec l'ancien code)
+  category?: Category | null;       // 🔄 Déprécié mais supporté
+  subCategory?: SubCategory | null; // 🔄 Déprécié mais supporté
 }
 
 export default function ProductInfo({ 
   product, 
-  category, 
-  subCategory, 
+  categories = [],
+  subCategories = [],
+  primaryCategory = null,
+  primarySubCategory = null,
+  category = null,    // 🔄 Rétrocompatibilité
+  subCategory = null, // 🔄 Rétrocompatibilité
   discount, 
   isOnSale 
 }: ProductInfoProps) {
@@ -88,7 +104,6 @@ export default function ProductInfo({
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
-
   const [cartSuccess, setCartSuccess] = useState(false);
   
   // Utilisation du contexte panier
@@ -97,6 +112,9 @@ export default function ProductInfo({
   const productInCart = isInCart(product.id);
   const quantityInCart = getItemQuantity(product.id);
   
+  // ✅ DÉTERMINATION INTELLIGENTE DE LA CATÉGORIE À AFFICHER
+  const displayCategory = primaryCategory || category || categories[0] || null;
+  const displaySubCategory = primarySubCategory || subCategory || subCategories[0] || null;
   
   // Gestionnaire d'ajout au panier avec le contexte
   const handleAddToCart = async () => {
@@ -118,7 +136,7 @@ export default function ProductInfo({
           items: [{
             item_id: product.sku,
             item_name: product.name,
-            category: category?.name,
+            category: displayCategory?.name,
             quantity: quantity,
             price: product.price
           }]
@@ -155,7 +173,7 @@ export default function ProductInfo({
           items: [{
             item_id: product.sku,
             item_name: product.name,
-            category: category?.name,
+            category: displayCategory?.name,
             quantity: quantity,
             price: product.price
           }]
@@ -226,19 +244,27 @@ export default function ProductInfo({
                 </p>
               )}
             </div>
-            
-            
           </div>
           
-          {/* Contexte catégorie */}
+          {/* ✅ CONTEXTE CATÉGORIE MULTI-CATÉGORIES AMÉLIORÉ */}
           <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
-            {category && (
+            {displayCategory && (
               <>
-                <span className="hover:text-rose-600 cursor-pointer">{category.name}</span>
-                {subCategory && (
+                <span className="hover:text-rose-600 cursor-pointer">{displayCategory.name}</span>
+                {displaySubCategory && (
                   <>
                     <span>•</span>
-                    <span className="hover:text-rose-600 cursor-pointer">{subCategory.name}</span>
+                    <span className="hover:text-rose-600 cursor-pointer">{displaySubCategory.name}</span>
+                  </>
+                )}
+                
+                {/* 🆕 INDICATEUR MULTI-CATÉGORIES */}
+                {categories.length > 1 && (
+                  <>
+                    <span>•</span>
+                    <span className="text-blue-600 text-xs bg-blue-100 px-2 py-1 rounded-full">
+                      +{categories.length - 1} autres
+                    </span>
                   </>
                 )}
               </>
@@ -247,12 +273,12 @@ export default function ProductInfo({
         </div>
         
         {/* Prix et promotions - Optimisé mobile */}
-        <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 bg-gray-50 ">
+        <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
           {/* Badge personnalisé */}
           {product.badgeText && (
             <div className="inline-block">
               <span 
-                className="inline-flex items-center px-2 py-1 text-xs font-medium text-white "
+                className="inline-flex items-center px-2 py-1 text-xs font-medium text-white rounded-full"
                 style={{ backgroundColor: product.badgeColor || '#ef4444' }}
               >
                 {product.badgeText}
@@ -306,7 +332,7 @@ export default function ProductInfo({
           <div className="flex justify-between items-center py-2 border-b border-gray-100">
             <span className="font-medium text-gray-700">Catégorie:</span>
             <span className="text-gray-600 text-right">
-              {subCategory?.name || category?.name || 'Non classé'}
+              {displaySubCategory?.name || displayCategory?.name || 'Non classé'}
             </span>
           </div>
         </div>

@@ -73,6 +73,14 @@ export default function HomePage() {
         containerClass="bg-gray-50"
       />
 
+      <HomeSection
+        categorySlug="cosmetique-coreen"
+        title="Nos Cosmétiques Coréen"
+        maxProducts={6}
+        showViewMore={true}
+        containerClass="bg-gray-50"
+      />
+
       {/* 📱 MOBILE: Instagram Gallery - 6 images sur toute la largeur */}
       <InstagramGallery />
     </div>

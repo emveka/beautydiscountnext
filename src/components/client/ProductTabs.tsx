@@ -1,17 +1,28 @@
-// components/client/ProductTabs.tsx
+// components/client/ProductTabs.tsx - INTERFACE MISE À JOUR MULTI-CATÉGORIES
 'use client';
 
 import { useState } from 'react';
 import type { Product, Category, SubCategory } from '@/lib/types';
 
+// ✅ INTERFACE MISE À JOUR POUR MULTI-CATÉGORIES
 interface ProductTabsProps {
   product: Product;
-  category: Category | null;
-  subCategory: SubCategory | null;
+  
+  // ✅ NOUVELLES PROPS MULTI-CATÉGORIES
+  categories: Category[];           // 🔄 Tableau de toutes les catégories
+  subCategories: SubCategory[];     // 🔄 Tableau de toutes les sous-catégories
+  
+  // ✅ PROPS DE RÉTROCOMPATIBILITÉ (optionnelles)
+  primaryCategory?: Category | null;      // 🔄 Catégorie principale pour rétrocompatibilité
+  primarySubCategory?: SubCategory | null; // 🔄 Sous-catégorie principale pour rétrocompatibilité
+  
+  // 🆕 PROPS HÉRITÉES (pour compatibilité avec l'ancien code)
+  category?: Category | null;       // 🔄 Déprécié mais supporté
+  subCategory?: SubCategory | null; // 🔄 Déprécié mais supporté
 }
 
 /**
- * Composant ProductTabs - Onglets d'informations produit
+ * Composant ProductTabs - Onglets d'informations produit avec support multi-catégories
  * 
  * Fonctionnalités :
  * ✅ Onglet Description avec contenu riche
@@ -20,9 +31,22 @@ interface ProductTabsProps {
  * ✅ Animations fluides
  * ✅ Sans icônes - Design épuré
  * ✅ Hiérarchie H3-H4 appropriée pour le SEO
+ * ✅ Support multi-catégories intelligent
  */
-export default function ProductTabs({ product, category, subCategory }: ProductTabsProps) {
+export default function ProductTabs({ 
+  product,
+  categories = [],
+  subCategories = [],
+  primaryCategory = null,
+  primarySubCategory = null,
+  category = null,    // 🔄 Rétrocompatibilité
+  subCategory = null  // 🔄 Rétrocompatibilité
+}: ProductTabsProps) {
   const [activeTab, setActiveTab] = useState<'description' | 'specs'>('description');
+  
+  // ✅ DÉTERMINATION INTELLIGENTE DE LA CATÉGORIE À AFFICHER
+  const displayCategory = primaryCategory || category || categories[0] || null;
+  const displaySubCategory = primarySubCategory || subCategory || subCategories[0] || null;
   
   // Configuration des onglets sans icônes
   const tabs = [
@@ -84,21 +108,57 @@ export default function ProductTabs({ product, category, subCategory }: ProductT
               </div>
             </div>
             
-            {/* Informations contextuelles */}
-            {(category || subCategory) && (
+            {/* ✅ INFORMATIONS CONTEXTUELLES MULTI-CATÉGORIES */}
+            {(categories.length > 0 || subCategories.length > 0 || displayCategory || displaySubCategory) && (
               <div className="border-t border-gray-200 pt-4 sm:pt-6">
                 <h4 className="font-semibold text-gray-900 mb-3">
-                  À propos de cette catégorie
+                  À propos de {categories.length > 1 ? 'ces catégories' : 'cette catégorie'}
                 </h4>
                 <div className="text-gray-600 text-sm space-y-3">
-                  {subCategory?.description && (
+                  
+                  {/* Affichage des sous-catégories multiples */}
+                  {subCategories.length > 0 ? (
+                    subCategories.map((subCat, index) => (
+                      <div key={subCat.id} className="bg-blue-50 p-3 sm:p-4 rounded-lg">
+                        <p>
+                          <strong className="text-blue-700">{subCat.name}:</strong> 
+                          {subCat.description || `Découvrez notre sélection de produits ${subCat.name.toLowerCase()}.`}
+                        </p>
+                      </div>
+                    ))
+                  ) : displaySubCategory?.description && (
                     <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
-                      <p><strong className="text-blue-700">{subCategory.name}:</strong> {subCategory.description}</p>
+                      <p>
+                        <strong className="text-blue-700">{displaySubCategory.name}:</strong> 
+                        {displaySubCategory.description}
+                      </p>
                     </div>
                   )}
-                  {category?.description && (
+                  
+                  {/* Affichage des catégories multiples */}
+                  {categories.length > 1 ? (
                     <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                      <p><strong className="text-gray-700">{category.name}:</strong> {category.description}</p>
+                      <p>
+                        <strong className="text-gray-700">Ce produit appartient à plusieurs catégories:</strong>
+                      </p>
+                      <ul className="mt-2 space-y-1">
+                        {categories.map(cat => (
+                          <li key={cat.id} className="flex items-start">
+                            <span className="mr-2 text-gray-400">•</span>
+                            <span>
+                              <strong>{cat.name}:</strong> 
+                              {cat.description || `Explorez notre gamme ${cat.name.toLowerCase()}.`}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : displayCategory?.description && (
+                    <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                      <p>
+                        <strong className="text-gray-700">{displayCategory.name}:</strong> 
+                        {displayCategory.description}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -173,14 +233,45 @@ export default function ProductTabs({ product, category, subCategory }: ProductT
                       </div>
                     )}
                     
+                    {/* ✅ AFFICHAGE INTELLIGENT DES CATÉGORIES */}
                     <div className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
                       <dt className="font-medium text-gray-700">
-                        Catégorie
+                        {categories.length > 1 ? 'Catégories' : 'Catégorie'}
                       </dt>
                       <dd className="text-gray-600 text-right">
-                        {subCategory?.name || category?.name || 'Non classé'}
+                        {categories.length > 0 ? (
+                          <div className="space-y-1">
+                            {categories.map((cat, index) => (
+                              <div key={cat.id}>
+                                {cat.name}
+                                {index < categories.length - 1 && ', '}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          displaySubCategory?.name || displayCategory?.name || 'Non classé'
+                        )}
                       </dd>
                     </div>
+                    
+                    {/* ✅ AFFICHAGE DES SOUS-CATÉGORIES SI MULTIPLES */}
+                    {subCategories.length > 0 && (
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
+                        <dt className="font-medium text-gray-700">
+                          {subCategories.length > 1 ? 'Sous-catégories' : 'Sous-catégorie'}
+                        </dt>
+                        <dd className="text-gray-600 text-right">
+                          <div className="space-y-1">
+                            {subCategories.map((subCat, index) => (
+                              <div key={subCat.id}>
+                                {subCat.name}
+                                {index < subCategories.length - 1 && ', '}
+                              </div>
+                            ))}
+                          </div>
+                        </dd>
+                      </div>
+                    )}
                     
                     <div className="flex justify-between items-center py-2">
                       <dt className="font-medium text-gray-700">
@@ -198,9 +289,31 @@ export default function ProductTabs({ product, category, subCategory }: ProductT
                     </div>
                   </dl>
                 </div>
+
+                {/* ✅ SECTION SPÉCIALE MULTI-CATÉGORIES */}
+                {categories.length > 1 && (
+                  <div className="mt-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">
+                      Classement multi-catégories
+                    </h4>
+                    <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
+                      <p className="text-sm text-blue-700 mb-3">
+                        Ce produit polyvalent appartient à {categories.length} catégories différentes :
+                      </p>
+                      <div className="space-y-2">
+                        {categories.map((cat, index) => (
+                          <div key={cat.id} className="flex items-center space-x-2">
+                            <span className="flex-shrink-0 w-5 h-5 bg-blue-200 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold">
+                              {index + 1}
+                            </span>
+                            <span className="text-blue-700 font-medium">{cat.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              
-              
             </div>
           </div>
         )}
