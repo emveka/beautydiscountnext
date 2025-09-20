@@ -10,7 +10,7 @@ import Header from '@/components/Header';
 import MenuNavigation from '@/components/MenuNavigation';
 import Footer from '@/components/Footer';
 
-// ✅ CORRIGÉ : Import du wrapper client au lieu du provider direct
+// Import du wrapper client au lieu du provider direct
 import CartProviderWrapper from '@/components/providers/CartProviderWrapper';
 
 // Configuration de la police Google Fonts
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   creator: 'BeautyDiscount',
   publisher: 'BeautyDiscount',
   
-  // Open Graph (Facebook, LinkedIn)
+  // Open Graph (Facebook, LinkedIn) - sans modifiedTime qui n'existe pas
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
@@ -73,6 +73,12 @@ export const metadata: Metadata = {
     description: 'Découvrez la plus grande sélection de produits de beauté au Maroc.',
     images: ['/twitter-image.jpg'],
     creator: '@beautydiscount',
+  },
+  
+  // Métadonnées de fraîcheur dans other (qui accepte des propriétés personnalisées)
+  other: {
+    'og:updated_time': new Date().toISOString(),
+    'article:modified_time': new Date().toISOString(),
   },
   
   // Configuration robots
@@ -100,7 +106,6 @@ export const metadata: Metadata = {
   icons: {
     icon: '/Beautydiscount Favicon.png',
     shortcut: '/favicon-16x16.png',
-    
   },
 };
 
@@ -113,8 +118,7 @@ interface RootLayoutProps {
 
 /**
  * RootLayout - Layout principal de l'application
- * 
- * ✅ CORRIGÉ : Utilisation du wrapper client pour éviter l'erreur "client-only"
+ * Version originale sans polyfills compliqués
  */
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
@@ -162,7 +166,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           Aller au contenu principal
         </a>
 
-        {/* ✅ CORRIGÉ : CartProviderWrapper au lieu de CartProvider direct */}
+        {/* CartProviderWrapper au lieu de CartProvider direct */}
         <CartProviderWrapper>
           {/* Structure principale de la page */}
           <div className="min-h-screen flex flex-col">

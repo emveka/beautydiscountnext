@@ -9,6 +9,12 @@ interface SubMenuItem {
   href: string;
 }
 
+interface BrandItem {
+  name: string;
+  href: string;
+  logo?: string; // Logo de la marque (optionnel)
+}
+
 interface MenuItem {
   label: string;
   href: string;
@@ -16,12 +22,85 @@ interface MenuItem {
   specialColor?: string; // Couleur spéciale pour les éléments spéciaux
   hasDropdown?: boolean; // Si l'élément a un menu déroulant
   subItems?: SubMenuItem[]; // Liste simple des sous-éléments
+  // Nouvelles propriétés pour les marques du menu déroulant
+  brands?: BrandItem[]; // Liste des marques pour cette catégorie
 }
 
 /**
- * Configuration des sous-catégories pour chaque section
- * Structure simplifiée : juste une liste de liens par catégorie
+ * Configuration des marques pour chaque section
  */
+
+// LISSAGES - Marques
+const lissagesbrands: BrandItem[] = [
+  { name: "Keratin Complex", href: "/marques/keratin-complex" },
+  { name: "Brazilian Blowout", href: "/marques/brazilian-blowout" },
+  { name: "Coppola", href: "/marques/coppola" },
+  { name: "Cadiveu", href: "/marques/cadiveu" },
+  { name: "Inoar", href: "/marques/inoar" },
+  { name: "Honma Tokyo", href: "/marques/honma-tokyo" },
+  { name: "Tahe", href: "/marques/tahe" },
+  { name: "Brasil Cacau", href: "/marques/brasil-cacau" },
+];
+
+// SOINS CAPILLAIRES - Marques
+const soinsCapillairesBrands: BrandItem[] = [
+  { name: "Olaplex", href: "/marques/olaplex" },
+  { name: "Redken", href: "/marques/redken" },
+  { name: "L'Oréal Professionnel", href: "/marques/loreal-professionnel" },
+  { name: "Kerastase", href: "/marques/kerastase" },
+  { name: "Schwarzkopf", href: "/marques/schwarzkopf" },
+  { name: "Matrix", href: "/marques/matrix" },
+  { name: "Wella", href: "/marques/wella" },
+  { name: "Moroccanoil", href: "/marques/moroccanoil" },
+];
+
+// COLORATION - Marques
+const colorationBrands: BrandItem[] = [
+  { name: "Goldwell", href: "/marques/goldwell" },
+  { name: "Schwarzkopf IGORA", href: "/marques/schwarzkopf-igora" },
+  { name: "L'Oréal INOA", href: "/marques/loreal-inoa" },
+  { name: "Wella Color Touch", href: "/marques/wella-color-touch" },
+  { name: "Matrix SoColor", href: "/marques/matrix-socolor" },
+  { name: "Redken Chromatics", href: "/marques/redken-chromatics" },
+  { name: "Pravana", href: "/marques/pravana" },
+  { name: "Manic Panic", href: "/marques/manic-panic" },
+];
+
+// COSMÉTIQUE CORÉEN - Marques
+const cosmetiqueCoreenBrands: BrandItem[] = [
+  { name: "The Ordinary", href: "/marques/the-ordinary" },
+  { name: "COSRX", href: "/marques/cosrx" },
+  { name: "Innisfree", href: "/marques/innisfree" },
+  { name: "Etude House", href: "/marques/etude-house" },
+  { name: "Laneige", href: "/marques/laneige" },
+  { name: "Dr. Jart+", href: "/marques/dr-jart" },
+  { name: "Some By Mi", href: "/marques/some-by-mi" },
+  { name: "Beauty of Joseon", href: "/marques/beauty-of-joseon" },
+];
+
+// SOINS VISAGE - Marques
+const soinsVisageBrands: BrandItem[] = [
+  { name: "La Roche-Posay", href: "/marques/la-roche-posay" },
+  { name: "Cerave", href: "/marques/cerave" },
+  { name: "Vichy", href: "/marques/vichy" },
+  { name: "Avène", href: "/marques/avene" },
+  { name: "Eucerin", href: "/marques/eucerin" },
+  { name: "Nuxe", href: "/marques/nuxe" },
+  { name: "Caudalie", href: "/marques/caudalie" },
+  { name: "Bioderma", href: "/marques/bioderma" },
+];
+
+// ACCESSOIRES - Marques
+const accessoiresBrands: BrandItem[] = [
+  { name: "GHD", href: "/marques/ghd" },
+  { name: "Babyliss", href: "/marques/babyliss" },
+  { name: "Remington", href: "/marques/remington" },
+  { name: "Dyson", href: "/marques/dyson" },
+  { name: "Tangle Teezer", href: "/marques/tangle-teezer" },
+  { name: "Denman", href: "/marques/denman" },
+  { name: "Mason Pearson", href: "/marques/mason-pearson" },
+  { name: "Cloud Nine", href: "/marques/cloud-nine" },
+];
 
 // LISSAGES - Sous-catégories
 const lissagesSubItems: SubMenuItem[] = [
@@ -93,7 +172,7 @@ const accessoiresSubItems: SubMenuItem[] = [
 
 /**
  * Configuration du menu principal
- * Structure simplifiée avec liste directe des sous-éléments
+ * Structure simplifiée avec liste directe des sous-éléments et marques pour les menus déroulants
  */
 const menuItems: MenuItem[] = [
   {
@@ -101,36 +180,42 @@ const menuItems: MenuItem[] = [
     href: "/categories/lissages",
     hasDropdown: true,
     subItems: lissagesSubItems,
+    brands: lissagesbrands,
   },
   {
     label: "SOINS CAPILLAIRES",
     href: "/categories/soins-capillaires",
     hasDropdown: true,
     subItems: soinsCapillairesSubItems,
+    brands: soinsCapillairesBrands,
   },
   {
     label: "COSMÉTIQUE CORÉEN",
     href: "/categories/cosmetique-coreen",
     hasDropdown: true,
     subItems: cosmetiqueCoreenSubItems,
+    brands: cosmetiqueCoreenBrands,
   },
   {
     label: "SOINS VISAGE",
     href: "/categories/soins-visage",
     hasDropdown: true,
     subItems: soinsVisageSubItems,
+    brands: soinsVisageBrands,
   },
   {
     label: "COLORATION",
     href: "/categories/coloration",
     hasDropdown: true,
     subItems: colorationSubItems,
+    brands: colorationBrands,
   },
   {
     label: "ACCESSOIRES",
     href: "/categories/accessoires",
     hasDropdown: true,
     subItems: accessoiresSubItems,
+    brands: accessoiresBrands,
   },
   {
     label: "ONGLERIE",
@@ -152,7 +237,7 @@ const menuItems: MenuItem[] = [
 ];
 
 /**
- * Composant MenuNavigation - Navigation principale avec menus déroulants simplifiés
+ * Composant MenuNavigation - Navigation principale avec menus déroulants et marques
  * 
  * VERSION RESPONSIVE :
  * - Caché complètement sur mobile (intégré dans le hamburger du Header)
@@ -160,7 +245,7 @@ const menuItems: MenuItem[] = [
  * 
  * Fonctionnalités Desktop :
  * - Navigation horizontale avec catégories principales CENTRÉES
- * - Menus déroulants simples au survol avec liste de sous-catégories
+ * - Menus déroulants avec structure : 2 colonnes catégories + 2 colonnes marques
  * - Éléments spéciaux (promotions, nouveautés) dans container séparé à droite
  * - Gestion intelligente des timeouts pour une UX fluide
  * - Fermeture automatique au scroll
@@ -281,7 +366,7 @@ export default function MenuNavigation() {
                 >
                   <Link
                     href={item.href}
-                    className={`px-3 py-3 text-sm font-bold transition-colors whitespace-nowrap flex items-center gap-1 ${
+                    className={`px-3 py-1.5 text-sm font-bold transition-colors whitespace-nowrap flex items-center gap-1 ${
                       activeMenu === item.label && item.hasDropdown
                         ? 'bg-rose-400 text-black'
                         : 'text-black hover:bg-rose-400'
@@ -313,7 +398,7 @@ export default function MenuNavigation() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="px-6 py-2.5 text-sm font-bold text-white transition-all duration-200 whitespace-nowrap hover:scale-105 shadow-md"
+                  className="px-6 py-1.5 text-sm font-bold text-white transition-all duration-200 whitespace-nowrap hover:scale-105 shadow-md"
                   style={{ backgroundColor: item.specialColor }}
                 >
                   {item.label}
@@ -324,25 +409,86 @@ export default function MenuNavigation() {
         </div>
       </nav>
 
-      {/* Menu Déroulant Simplifié - Visible uniquement sur desktop */}
+      {/* Menu Déroulant avec Marques - Structure 4 colonnes (2 catégories + 2 marques) */}
       {isMenuVisible && activeItem && activeItem.hasDropdown && activeItem.subItems && (
         <div 
           className="hidden lg:block absolute left-0 right-0 bg-white mx-auto max-w-[1500px] shadow-xl border-t-4 border-rose-300 z-40"
           onMouseEnter={handleDropdownEnter}
           onMouseLeave={handleDropdownLeave}
         >
-          <div className="mx-auto max-w-[1500px] px-4 py-6">
-            {/* Liste simple des sous-catégories en colonnes */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3">
-              {activeItem.subItems.map((subItem, index) => (
-                <Link
-                  key={index}
-                  href={subItem.href}
-                  className="text-gray-900 hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 block py-2 px-3 rounded-md text-[16px] font-medium"
-                >
-                  {subItem.label}
-                </Link>
-              ))}
+          <div className="mx-auto max-w-[1500px] px-6 py-8">
+            
+            {/* Structure en 4 colonnes : 2 pour catégories + 2 pour marques */}
+            <div className="grid grid-cols-4 gap-8">
+              
+              {/* COLONNE 1 : Première moitié des catégories */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 border-b border-rose-200 pb-2">
+                  {activeItem.label}
+                </h3>
+                {activeItem.subItems.slice(0, Math.ceil(activeItem.subItems.length / 2)).map((subItem, index) => (
+                  <Link
+                    key={index}
+                    href={subItem.href}
+                    className="text-gray-700 hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 block py-2 px-3 rounded-md text-sm font-medium hover:translate-x-1"
+                  >
+                    {subItem.label}
+                  </Link>
+                ))}
+              </div>
+
+              {/* COLONNE 2 : Deuxième moitié des catégories */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-transparent mb-4 border-b border-transparent pb-2">
+                  &nbsp;
+                </h3>
+                {activeItem.subItems.slice(Math.ceil(activeItem.subItems.length / 2)).map((subItem, index) => (
+                  <Link
+                    key={index}
+                    href={subItem.href}
+                    className="text-gray-700 hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 block py-2 px-3 rounded-md text-sm font-medium hover:translate-x-1"
+                  >
+                    {subItem.label}
+                  </Link>
+                ))}
+              </div>
+
+              {/* COLONNE 3 : Première moitié des marques */}
+              {activeItem.brands && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 border-b border-rose-200 pb-2">
+                    Par Marques
+                  </h3>
+                  {activeItem.brands.slice(0, Math.ceil(activeItem.brands.length / 2)).map((brand, index) => (
+                    <Link
+                      key={index}
+                      href={brand.href}
+                      className="text-gray-700 hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 block py-2 px-3 rounded-md text-sm font-medium hover:translate-x-1 border-l-2 border-transparent hover:border-rose-400"
+                    >
+                      {brand.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* COLONNE 4 : Deuxième moitié des marques */}
+              {activeItem.brands && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-transparent mb-4 border-b border-transparent pb-2">
+                    &nbsp;
+                  </h3>
+                  {activeItem.brands.slice(Math.ceil(activeItem.brands.length / 2)).map((brand, index) => (
+                    <Link
+                      key={index}
+                      href={brand.href}
+                      className="text-gray-700 hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 block py-2 px-3 rounded-md text-sm font-medium hover:translate-x-1 border-l-2 border-transparent hover:border-rose-400"
+                    >
+                      {brand.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
             </div>
           </div>
         </div>

@@ -5,21 +5,20 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import MobileMenuNavigation from "./MobileMenuNavigation";
 import CartSidebar from "./CartSidebar";
-import SearchBar from "@/components/client/SearchBar"; // ✅ IMPORT AJOUTÉ
+import SearchBar from "@/components/client/SearchBar"; // ✅ SEARCHBAR INTELLIGENTE
 import { useCart } from "@/lib/contexts/CartContext";
 
-// Interface pour les props du composant Header
 interface HeaderProps {
   onSearch?: (query: string) => void;
   className?: string;
 }
 
 /**
- * HEADER OPTIMISÉ AVEC SEARCHBAR INTÉGRÉ
- * ✅ Remplace l'ancien système de recherche par SearchBar
- * ✅ Garde toute la logique existante (panier, menus, etc.)
- * ✅ Design cohérent avec le thème BeautyDiscount
- * ✅ Mobile-first responsive
+ * 🎯 HEADER AVEC TON DESIGN ORIGINAL + INTELLIGENCE FIREBASE
+ * ✅ Garde exactement ton interface visuelle
+ * ✅ Ajoute l'intelligence en arrière-plan
+ * ✅ Auto-suggestions depuis tes produits Firebase
+ * ✅ Recherche approximative (tolérance aux fautes)
  */
 export default function Header({ onSearch, className = "" }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -29,16 +28,13 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
 
   const { getCartSummary, toggleCart } = useCart();
   
-  // Valeurs par défaut pour éviter l'hydratation différentielle
   const defaultCart = { itemsCount: 0, totalPrice: 0 };
   const cartSummary = isMounted ? getCartSummary() : defaultCart;
 
-  // Marquer le composant comme monté côté client
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Fermer les menus au clic en dehors
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isMobileMenuOpen || isMobileContactMenuOpen) {
@@ -77,7 +73,7 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
       <header className={`bg-black text-white shadow-lg ${className}`}>
         <div className="mx-auto w-full max-w-[1500px] py-2 sm:py-2">
           
-          {/* ✅ LAYOUT DESKTOP - AVEC SEARCHBAR */}
+          {/* ✅ LAYOUT DESKTOP - TON DESIGN ORIGINAL + SEARCHBAR INTELLIGENTE */}
           <div className="hidden items-center justify-between lg:flex">
             
             {/* Logo Desktop */}
@@ -96,45 +92,16 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
               />
             </Link>
 
-            {/* Barre de recherche Desktop - DESIGN ORIGINAL */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const query = (formData.get("q") as string)?.trim() || "";
-                if (query) {
-                  window.location.href = `/search?q=${encodeURIComponent(query)}`;
-                }
-              }}
-              className="relative mx-8 max-w-4xl flex-1"
-              role="search"
-              aria-label="Rechercher des produits"
-            >
-              <div className="flex items-stretch">
-                <input
-                  name="q"
-                  type="text"
-                  placeholder="Trouvez votre produit beauté..."
-                  className="w-full rounded-l-lg border-none bg-white px-4 py-3 text-sm text-black outline-none placeholder:text-gray-500 focus:ring-2 focus:ring-rose-300"
-                  aria-label="Champ de recherche"
-                />
-                <button
-                  type="submit"
-                  className="rounded-r-lg bg-rose-300 px-6 text-white transition-colors duration-200 hover:bg-rose-400 focus:ring-2 focus:ring-pink-400 focus:ring-offset-2 focus:ring-offset-black"
-                  aria-label="Lancer la recherche"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="20"
-                    height="20"
-                    className="fill-current"
-                    aria-hidden="true"
-                  >
-                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                  </svg>
-                </button>
-              </div>
-            </form>
+            {/* 🔍 SEARCHBAR INTELLIGENTE AVEC TON DESIGN DESKTOP ORIGINAL */}
+            <div className="mx-8 max-w-4xl flex-1">
+              <SearchBar 
+                placeholder="Trouvez votre produit beauté..."
+                className="w-full"
+                variant="desktop"
+                showSuggestions={true}
+                maxSuggestions={6}
+              />
+            </div>
 
             {/* Navigation utilisateur Desktop - INCHANGÉE */}
             <div className="flex items-center gap-6">
@@ -270,7 +237,7 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
             </div>
           </div>
 
-          {/* ✅ LAYOUT MOBILE - GARDE LA STRUCTURE EXISTANTE */}
+          {/* ✅ LAYOUT MOBILE - TON DESIGN ORIGINAL */}
           <div className="lg:hidden">
             <div className="flex items-center justify-between px-2">
               
@@ -413,63 +380,16 @@ export default function Header({ onSearch, className = "" }: HeaderProps) {
         </div>
       </header>
 
-      {/* Barre de recherche Mobile - DESIGN ORIGINAL */}
+      {/* 🔍 SEARCHBAR MOBILE INTELLIGENTE - TON DESIGN ORIGINAL */}
       <div className="sticky top-0 z-40 border-b border-gray-200 bg-gray-50 lg:hidden">
         <div className="mx-auto max-w-[1500px] px-3 py-1">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              const query = (formData.get("q") as string)?.trim() || "";
-              if (query) {
-                window.location.href = `/search?q=${encodeURIComponent(query)}`;
-              }
-            }}
-            className="relative"
-            role="search"
-            aria-label="Rechercher des produits"
-          >
-            <div className="flex items-center gap-1.5">
-              <div className="relative flex-1">
-                <input
-                  name="q"
-                  type="text"
-                  placeholder="Rechercher..."
-                  className="w-full rounded-full border border-gray-300 bg-white py-1.5 pl-7 pr-7 text-sm text-black shadow-sm outline-none placeholder:text-gray-400 focus:border-rose-300 focus:ring-1 focus:ring-rose-300"
-                  aria-label="Champ de recherche"
-                  style={{ fontSize: '16px' }}
-                />
-                <div className="absolute left-2 top-1/2 -translate-y-1/2 transform">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="text-gray-400"
-                    aria-hidden="true"
-                  >
-                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                  </svg>
-                </div>
-              </div>
-              
-              <button
-                type="submit"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-300 text-white shadow-sm transition-colors duration-200 hover:bg-rose-400"
-                aria-label="Lancer la recherche"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="12"
-                  height="12"
-                  className="fill-current"
-                  aria-hidden="true"
-                >
-                  <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                </svg>
-              </button>
-            </div>
-          </form>
+          <SearchBar 
+            placeholder="Rechercher..."
+            className="w-full"
+            variant="mobile"
+            showSuggestions={true}
+            maxSuggestions={4}
+          />
         </div>
       </div>
 

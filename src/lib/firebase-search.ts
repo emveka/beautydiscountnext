@@ -1,4 +1,4 @@
-// lib/firebase-search.ts - FONCTIONS DE RECHERCHE FIREBASE SIMPLES
+// lib/firebase-search.ts - VERSION SIMPLE ET FONCTIONNELLE
 import { 
   collection, 
   query, 
@@ -11,7 +11,7 @@ import type { Product } from "@/lib/types";
 import { getBrandsMap } from "./firebase-utils";
 
 /**
- * Interface pour les résultats de recherche enrichis
+ * Interface pour les résultats de recherche
  */
 export interface SearchResult {
   products: Product[];
@@ -22,7 +22,7 @@ export interface SearchResult {
 }
 
 /**
- * Options de recherche configurables
+ * Options de recherche
  */
 export interface SearchOptions {
   limit?: number;
@@ -36,19 +36,122 @@ export interface SearchOptions {
 }
 
 /**
- * 🔍 FONCTION PRINCIPALE DE RECHERCHE PRODUITS
- * 
- * STRATÉGIE SIMPLE ET EFFICACE :
- * ✅ Récupère tous les produits (avec cache)
- * ✅ Filtre côté client par terme de recherche
- * ✅ Recherche dans : nom, description, marque, SKU
- * ✅ Support multi-catégories (réutilise tes fonctions existantes)
- * ✅ Tri par pertinence intelligent
- * ✅ Performance optimisée
- * 
- * @param searchTerm - Terme à rechercher
- * @param options - Options de filtrage et tri
- * @returns Promise<SearchResult>
+ * Normalisation du texte pour la recherche
+ */
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Supprime les accents
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Calcul simple de similarité
+ */
+function calculateSimilarity(str1: string, str2: string): number {
+  if (!str1 || !str2) return 0;
+  
+  const s1 = normalizeText(str1);
+  const s2 = normalizeText(str2);
+  
+  if (s1 === s2) return 1;
+  if (s1.includes(s2) || s2.includes(s1)) return 0.8;
+  
+  // Calcul de distance simple
+  const maxLen = Math.max(s1.length, s2.length);
+  if (maxLen === 0) return 1;
+  
+  let matches = 0;
+  const minLen = Math.min(s1.length, s2.length);
+  
+  for (let i = 0; i < minLen; i++) {
+    if (s1[i] === s2[i]) matches++;
+  }
+  
+  return matches / maxLen;
+}
+
+/**
+ * Génération de variantes de recherche
+ */
+function generateVariants(term: string): string[] {
+  const variants = new Set<string>();
+  const normalized = normalizeText(term);
+  
+  // Corrections courantes
+  const corrections: Record<string, string[]> = {
+    'lissage': ['lisage', 'lissag', 'lysage'],
+    'bresilien': ['bresilien', 'brezilien', 'brazilian'],
+    'cheveux': ['cheveu', 'cheveus'],
+    'masque': ['masqu', 'mask'],
+    'shampooing': ['shampoing', 'shampoo'],
+    'decolorant': ['decolorant', 'decoloran'],
+    'coreen': ['coreen', 'korean'],
+    'maquillage': ['maquillage', 'makeup'],
+    'poudre': ['poudre', 'powder'],
+    'creme': ['crème', 'cream']
+  };
+
+  variants.add(normalized);
+  
+  // Ajouter les corrections
+  Object.entries(corrections).forEach(([correct, wrongs]) => {
+    if (wrongs.includes(normalized)) {
+      variants.add(correct);
+    }
+    if (correct === normalized) {
+      wrongs.forEach(wrong => variants.add(wrong));
+    }
+  });
+
+  return Array.from(variants);
+}
+
+/**
+ * Calcul du score de pertinence
+ */
+function calculateRelevanceScore(product: Product, searchTerm: string): number {
+  let score = 0;
+  const search = normalizeText(searchTerm);
+  const variants = generateVariants(search);
+  
+  const productName = normalizeText(product.name);
+  const brandName = normalizeText(product.brandName || '');
+  const description = normalizeText(product.description);
+  const shortDesc = normalizeText(product.shortDescription || '');
+
+  // Recherche exacte
+  for (const variant of variants) {
+    if (productName === variant) score += 100;
+    else if (productName.includes(variant)) score += 80;
+    
+    if (brandName === variant) score += 70;
+    else if (brandName.includes(variant)) score += 50;
+    
+    if (shortDesc.includes(variant)) score += 40;
+    if (description.includes(variant)) score += 30;
+  }
+
+  // Recherche approximative si pas de score exact
+  if (score === 0) {
+    const nameSim = calculateSimilarity(productName, search);
+    const brandSim = calculateSimilarity(brandName, search);
+    
+    if (nameSim > 0.4) score += Math.floor(nameSim * 60);
+    if (brandSim > 0.4) score += Math.floor(brandSim * 40);
+  }
+
+  // Bonus qualité
+  if (product.score > 80) score += 5;
+
+  return score;
+}
+
+/**
+ * Fonction principale de recherche
  */
 export async function searchProducts(
   searchTerm: string,
@@ -57,10 +160,7 @@ export async function searchProducts(
   const startTime = Date.now();
   
   try {
-    console.log(`🔍 Recherche de produits pour: "${searchTerm}"`);
-    
-    // ✅ VALIDATION DU TERME DE RECHERCHE
-    const cleanSearchTerm = searchTerm.trim().toLowerCase();
+    const cleanSearchTerm = searchTerm.trim();
     
     if (!cleanSearchTerm || cleanSearchTerm.length < 2) {
       return {
@@ -72,7 +172,6 @@ export async function searchProducts(
       };
     }
 
-    // ✅ CONFIGURATION PAR DÉFAUT
     const {
       limit: maxResults = 50,
       includeOutOfStock = false,
@@ -84,57 +183,46 @@ export async function searchProducts(
       sortBy = 'relevance'
     } = options;
 
-    // ✅ RÉCUPÉRATION DES PRODUITS DEPUIS FIREBASE
+    // Récupération des produits
     const allProducts = await fetchAllProducts();
-    console.log(`📦 ${allProducts.length} produits récupérés depuis Firebase`);
-
-    // ✅ RÉCUPÉRATION DES NOMS DE MARQUES
-    const brandIds_unique = new Set<string>();
-    allProducts.forEach(product => {
-      if (product.brandId) {
-        brandIds_unique.add(product.brandId);
-      }
-    });
     
-    const brandsMap = await getBrandsMap(Array.from(brandIds_unique));
+    // Enrichissement avec noms de marques
+    const uniqueBrandIds = Array.from(new Set(
+      allProducts.map(p => p.brandId).filter(Boolean) as string[]
+    ));
     
-    // Enrichir les produits avec les noms de marques
+    const brandsMap = await getBrandsMap(uniqueBrandIds);
     allProducts.forEach(product => {
       if (product.brandId && brandsMap.has(product.brandId)) {
         product.brandName = brandsMap.get(product.brandId);
       }
     });
 
-    // ✅ FILTRAGE ET RECHERCHE
+    // Filtrage
     let filteredProducts = allProducts;
 
-    // Filtre 1: Stock
     if (!includeOutOfStock) {
       filteredProducts = filteredProducts.filter(p => p.stock !== "Rupture");
     }
 
-    // Filtre 2: Catégories
     if (categoryIds.length > 0) {
       filteredProducts = filteredProducts.filter(product =>
         product.categoryIds.some(catId => categoryIds.includes(catId))
       );
     }
 
-    // Filtre 3: Sous-catégories
     if (subCategoryIds.length > 0) {
       filteredProducts = filteredProducts.filter(product =>
         product.subCategoryIds.some(subCatId => subCategoryIds.includes(subCatId))
       );
     }
 
-    // Filtre 4: Marques
     if (brandIds.length > 0) {
       filteredProducts = filteredProducts.filter(product =>
         product.brandId && brandIds.includes(product.brandId)
       );
     }
 
-    // Filtre 5: Prix
     if (typeof minPrice === 'number') {
       filteredProducts = filteredProducts.filter(p => p.price >= minPrice);
     }
@@ -142,13 +230,13 @@ export async function searchProducts(
       filteredProducts = filteredProducts.filter(p => p.price <= maxPrice);
     }
 
-    // ✅ RECHERCHE TEXTUELLE AVEC SCORING
+    // Recherche et scoring
     const searchResults = filteredProducts
       .map(product => ({
         product,
         relevanceScore: calculateRelevanceScore(product, cleanSearchTerm)
       }))
-      .filter(result => result.relevanceScore > 0) // Garde seulement les résultats pertinents
+      .filter(result => result.relevanceScore > 0)
       .sort((a, b) => {
         if (sortBy === 'relevance') {
           return b.relevanceScore - a.relevanceScore;
@@ -156,22 +244,14 @@ export async function searchProducts(
         return sortProducts(a.product, b.product, sortBy);
       });
 
-    // ✅ LIMITATION DES RÉSULTATS
     const limitedResults = searchResults.slice(0, maxResults);
     const finalProducts = limitedResults.map(result => result.product);
 
-    // ✅ GÉNÉRATION DE SUGGESTIONS (optionnel)
-    const suggestions = generateSearchSuggestions(cleanSearchTerm, allProducts);
+    // Génération de suggestions simples
+    const suggestions = generateSimpleSuggestions(cleanSearchTerm, allProducts);
 
     const executionTime = Date.now() - startTime;
     
-    console.log(`✅ Recherche terminée en ${executionTime}ms:`, {
-      terme: searchTerm,
-      totalTrouvés: searchResults.length,
-      retournés: finalProducts.length,
-      suggestions: suggestions.length
-    });
-
     return {
       products: finalProducts,
       totalCount: searchResults.length,
@@ -181,7 +261,7 @@ export async function searchProducts(
     };
 
   } catch (error) {
-    console.error("❌ Erreur lors de la recherche:", error);
+    console.error("Erreur lors de la recherche:", error);
     
     return {
       products: [],
@@ -194,93 +274,7 @@ export async function searchProducts(
 }
 
 /**
- * 🎯 CALCUL DU SCORE DE PERTINENCE
- * 
- * LOGIQUE DE SCORING :
- * - Nom exact : 100 points
- * - Nom contient : 80 points
- * - Marque exacte : 70 points
- * - Marque contient : 50 points
- * - Description contient : 30 points
- * - SKU contient : 20 points
- * - Début de mot : +20 points bonus
- */
-function calculateRelevanceScore(product: Product, searchTerm: string): number {
-  let score = 0;
-  const search = searchTerm.toLowerCase();
-  
-  // Préparation des textes à analyser
-  const productName = product.name.toLowerCase();
-  const productDescription = product.description.toLowerCase();
-  const productShortDescription = product.shortDescription?.toLowerCase() || '';
-  const brandName = product.brandName?.toLowerCase() || '';
-  const sku = product.sku.toLowerCase();
-
-  // ✅ SCORING PRINCIPAL
-
-  // 1. Nom du produit (priorité maximale)
-  if (productName === search) {
-    score += 100; // Match exact
-  } else if (productName.includes(search)) {
-    score += 80;
-    // Bonus si le terme est au début
-    if (productName.startsWith(search)) {
-      score += 20;
-    }
-  }
-
-  // 2. Nom de marque
-  if (brandName && brandName === search) {
-    score += 70;
-  } else if (brandName && brandName.includes(search)) {
-    score += 50;
-    if (brandName.startsWith(search)) {
-      score += 15;
-    }
-  }
-
-  // 3. Description courte
-  if (productShortDescription && productShortDescription.includes(search)) {
-    score += 40;
-  }
-
-  // 4. Description longue
-  if (productDescription.includes(search)) {
-    score += 30;
-  }
-
-  // 5. SKU
-  if (sku.includes(search)) {
-    score += 20;
-  }
-
-  // ✅ BONUS POUR MOTS MULTIPLES
-  if (search.includes(' ')) {
-    const searchWords = search.split(' ').filter(word => word.length > 1);
-    let wordsFound = 0;
-    
-    searchWords.forEach(word => {
-      if (productName.includes(word) || brandName.includes(word)) {
-        wordsFound++;
-      }
-    });
-    
-    // Bonus si plusieurs mots trouvés
-    if (wordsFound > 1) {
-      score += wordsFound * 10;
-    }
-  }
-
-  // ✅ BONUS QUALITÉ PRODUIT
-  if (product.score > 80) {
-    score += 5; // Bonus pour les produits bien notés
-  }
-
-  return score;
-}
-
-/**
- * 🔄 FONCTION DE TRI DES PRODUITS
+ * Fonction de tri
  */
 function sortProducts(a: Product, b: Product, sortBy: string): number {
   switch (sortBy) {
@@ -292,20 +286,52 @@ function sortProducts(a: Product, b: Product, sortBy: string): number {
       return b.createdAt.getTime() - a.createdAt.getTime();
     case 'score':
       return b.score - a.score;
-    case 'relevance':
     default:
-      return b.score - a.score; // Fallback sur le score produit
+      return b.score - a.score;
   }
 }
 
 /**
- * 📦 RÉCUPÉRATION OPTIMISÉE DES PRODUITS
- * 
- * STRATÉGIE :
- * ✅ Cache simple en mémoire (5 minutes)
- * ✅ Récupération par batch si nécessaire
- * ✅ Migration automatique multi-catégories
+ * Génération de suggestions simples
  */
+function generateSimpleSuggestions(searchTerm: string, allProducts: Product[]): string[] {
+  const suggestions = new Set<string>();
+  const search = normalizeText(searchTerm);
+  
+  allProducts.forEach(product => {
+    const name = normalizeText(product.name);
+    const brand = normalizeText(product.brandName || '');
+    
+    if (name.includes(search) && suggestions.size < 8) {
+      suggestions.add(product.name);
+    }
+    
+    if (brand.includes(search) && suggestions.size < 8 && product.brandName) {
+      suggestions.add(product.brandName);
+    }
+  });
+  
+  return Array.from(suggestions).slice(0, 6);
+}
+
+/**
+ * Fonction pour suggestions live
+ */
+export async function getSearchSuggestions(searchTerm: string, maxSuggestions = 8): Promise<string[]> {
+  if (!searchTerm.trim() || searchTerm.trim().length < 2) {
+    return [];
+  }
+
+  try {
+    const products = await fetchAllProducts();
+    return generateSimpleSuggestions(searchTerm, products).slice(0, maxSuggestions);
+  } catch (error) {
+    console.error("Erreur suggestions:", error);
+    return [];
+  }
+}
+
+// Cache produits
 let productsCache: {
   data: Product[];
   timestamp: number;
@@ -314,36 +340,25 @@ let productsCache: {
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 async function fetchAllProducts(): Promise<Product[]> {
-  // Vérifier le cache
   if (productsCache && Date.now() - productsCache.timestamp < CACHE_DURATION) {
-    console.log("📋 Utilisation du cache produits");
     return productsCache.data;
   }
 
   try {
-    console.log("🔄 Récupération des produits depuis Firebase...");
-    
     const productsRef = collection(db, "products");
     const q = query(
       productsRef,
-      orderBy("score", "desc"), // Meilleurs produits en premier
-      limit(1000) // Limite raisonnable
+      orderBy("score", "desc"),
+      limit(1000)
     );
     
     const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
-      console.warn("⚠️ Aucun produit trouvé dans Firebase");
-      return [];
-    }
-
     const products: Product[] = [];
     
     querySnapshot.forEach((doc) => {
       try {
         const data = doc.data();
         
-        // ✅ MIGRATION AUTOMATIQUE MULTI-CATÉGORIES
         const product: Product = {
           id: doc.id,
           name: validateString(data.name, 'Produit sans nom'),
@@ -358,7 +373,6 @@ async function fetchAllProducts(): Promise<Product[]> {
             canonicalUrl: validateString(data.seo.canonicalUrl) || undefined,
           } : undefined,
           
-          // ✅ MIGRATION MULTI-CATÉGORIES
           categoryIds: validateArray(data.categoryIds) || (data.categoryId ? [validateString(data.categoryId)] : []),
           subCategoryIds: validateArray(data.subCategoryIds) || (data.subCategoryId ? [validateString(data.subCategoryId)] : []),
           
@@ -386,25 +400,21 @@ async function fetchAllProducts(): Promise<Product[]> {
         products.push(product);
         
       } catch (productError) {
-        console.error(`❌ Erreur traitement produit ${doc.id}:`, productError);
+        console.error(`Erreur traitement produit ${doc.id}:`, productError);
       }
     });
 
-    // Mise à jour du cache
     productsCache = {
       data: products,
       timestamp: Date.now()
     };
 
-    console.log(`✅ ${products.length} produits mis en cache`);
     return products;
 
   } catch (error) {
-    console.error("❌ Erreur récupération produits:", error);
+    console.error("Erreur récupération produits:", error);
     
-    // Retourner le cache même expiré en cas d'erreur
     if (productsCache) {
-      console.log("📋 Utilisation du cache expiré en fallback");
       return productsCache.data;
     }
     
@@ -412,34 +422,7 @@ async function fetchAllProducts(): Promise<Product[]> {
   }
 }
 
-/**
- * 💡 GÉNÉRATION DE SUGGESTIONS DE RECHERCHE
- */
-function generateSearchSuggestions(searchTerm: string, allProducts: Product[]): string[] {
-  const suggestions = new Set<string>();
-  
-  // Suggestions basées sur les noms de produits
-  allProducts.forEach(product => {
-    const productName = product.name.toLowerCase();
-    const brandName = product.brandName?.toLowerCase() || '';
-    
-    // Si le nom contient le terme, ajouter le nom complet
-    if (productName.includes(searchTerm) && productName !== searchTerm) {
-      suggestions.add(product.name);
-    }
-    
-    // Si la marque contient le terme, ajouter la marque
-    if (brandName.includes(searchTerm) && brandName !== searchTerm && product.brandName) {
-      suggestions.add(product.brandName);
-    }
-  });
-
-  // Limiter à 5 suggestions
-  return Array.from(suggestions).slice(0, 5);
-}
-
-// ===== FONCTIONS UTILITAIRES RÉUTILISÉES =====
-
+// Fonctions de validation
 function validateString(value: unknown, defaultValue = ''): string {
   return typeof value === 'string' ? value.trim() : defaultValue;
 }
@@ -481,66 +464,6 @@ function convertFirestoreDate(timestamp: unknown): Date {
   return new Date();
 }
 
-/**
- * 🚀 FONCTION RAPIDE POUR RECHERCHE SUGGESTIONS LIVE
- * Optimisée pour les suggestions en temps réel dans SearchBar
- */
-export async function getSearchSuggestions(searchTerm: string, maxSuggestions = 5): Promise<string[]> {
-  if (!searchTerm.trim() || searchTerm.trim().length < 2) {
-    return [];
-  }
-
-  try {
-    // Récupérer les produits (utilise le cache si disponible)
-    const products = await fetchAllProducts();
-    
-    // Suggestions simples basées sur les noms
-    const suggestions = new Set<string>();
-    const search = searchTerm.toLowerCase();
-    
-    products.forEach(product => {
-      const name = product.name.toLowerCase();
-      const brand = product.brandName?.toLowerCase() || '';
-      
-      if (name.includes(search) && suggestions.size < maxSuggestions * 2) {
-        suggestions.add(product.name);
-      }
-      
-      if (brand.includes(search) && suggestions.size < maxSuggestions * 2 && product.brandName) {
-        suggestions.add(product.brandName);
-      }
-    });
-    
-    return Array.from(suggestions).slice(0, maxSuggestions);
-    
-  } catch (error) {
-    console.error("❌ Erreur suggestions de recherche:", error);
-    return [];
-  }
-}
-
-/**
- * 🧹 FONCTION DE NETTOYAGE DU CACHE (utilitaire)
- */
 export function clearProductsCache(): void {
   productsCache = null;
-  console.log("🗑️ Cache produits vidé");
 }
-
-/* ✅ EXEMPLES D'UTILISATION :
-
-// Recherche simple
-const results = await searchProducts("lissage brésilien");
-
-// Recherche avec options
-const results = await searchProducts("masque", {
-  limit: 20,
-  includeOutOfStock: false,
-  categoryIds: ["cat123"],
-  sortBy: 'price'
-});
-
-// Suggestions pour SearchBar
-const suggestions = await getSearchSuggestions("liss", 5);
-
-*/

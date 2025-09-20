@@ -1,0 +1,113 @@
+# Robots.txt pour BeautyDiscount
+# Généré le 2024-12-21
+
+# 🤖 RÈGLES POUR TOUS LES BOTS
+User-agent: *
+
+# ✅ PAGES AUTORISÉES
+Allow: /
+Allow: /categories/
+Allow: /products/
+Allow: /promotions
+Allow: /search
+
+# ❌ PAGES INTERDITES
+# Fichiers système et technique
+Disallow: /_next/
+Disallow: /api/
+Disallow: /.well-known/
+
+# Pages administratives et privées
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /account/
+Disallow: /checkout/
+Disallow: /order-success/
+
+# Fichiers et dossiers techniques
+Disallow: /manifest.json
+Disallow: /sw.js
+Disallow: /workbox-*
+Disallow: /*.map$
+
+# Paramètres de filtrage et pagination (éviter le contenu dupliqué)
+Disallow: /*?sort=*
+Disallow: /*?filter=*
+Disallow: /*?page=*
+Disallow: /*?utm_*
+Disallow: /*?ref=*
+Disallow: /*?source=*
+
+# Images placeholder et temporaires
+Disallow: /images/temp/
+Disallow: /images/placeholder/
+Disallow: /api/placeholder/
+
+# 🎯 RÈGLES SPÉCIFIQUES POUR GOOGLE
+User-agent: Googlebot
+Allow: /
+
+# 📱 RÈGLES POUR GOOGLEBOT MOBILE
+User-agent: Googlebot-Mobile
+Allow: /
+
+# 🖼️ RÈGLES POUR GOOGLE IMAGES
+User-agent: Googlebot-Image
+Allow: /images/
+Allow: /banners/
+Disallow: /images/temp/
+Disallow: /images/placeholder/
+
+# 🛍️ RÈGLES POUR GOOGLE SHOPPING
+User-agent: Googlebot-News
+Disallow: /
+
+# 🔍 RÈGLES POUR BING
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# 📰 RÈGLES POUR AUTRES MOTEURS IMPORTANTS
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+
+# 🚫 BOTS MALVEILLANTS OU INDÉSIRABLES
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+# 📊 BOTS D'ANALYSE AUTORISÉS
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+# 🗺️ LOCALISATION DU SITEMAP
+Sitemap: https://beautydiscount.ma/sitemap.xml
+
+# 📍 INFORMATIONS SUPPLÉMENTAIRES
+# Site web: https://beautydiscount.ma
+# Contact: contact@beautydiscount.ma
+# Dernière mise à jour: 2024-12-21

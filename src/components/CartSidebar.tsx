@@ -55,7 +55,7 @@ export default function CartSidebar() {
     <>
       {/* Overlay pour desktop et mobile */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300"
+        className="fixed inset-0  bg-opacity-50 z-50 transition-opacity duration-300"
         onClick={handleOverlayClick}
         aria-label="Fermer le panier"
       >
