@@ -2,8 +2,9 @@
 import { Metadata } from "next";
 import BannerCarousel from '@/components/BannerCarousel';
 import HomeSection from '@/components/server/HomeSection';
-import InstagramGallery from '@/components/InstagramGallery';
 import React from 'react';
+
+import ClientInstagram from "@/components/ClientInstagram";
 
 // Métadonnées corrigées
 export const metadata: Metadata = {
@@ -209,7 +210,7 @@ export default function HomePage() {
       </section>
 
       {/* Instagram Gallery */}
-      <InstagramGallery />
+      <ClientInstagram />
     </div>
   );
 }

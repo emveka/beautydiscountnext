@@ -74,13 +74,23 @@ const InstagramGallery = () => {
             className="relative aspect-square overflow-hidden group cursor-pointer"
           >
             <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33.33vw, 16.66vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              priority={index < 3} // Charge les 3 premières images en priorité
-            />
+  src={image.src}
+  alt={image.alt}
+  fill
+  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33.33vw, 16.66vw"
+  className="object-cover transition-transform duration-300 group-hover:scale-105"
+  // 👉 Une seule image prioritaire : la 1ère
+  priority={index === 0}
+  // 👉 Première image en eager + haute priorité réseau
+  loading={index === 0 ? "eager" : "lazy"}
+  fetchPriority={index === 0 ? "high" : "auto"}
+  // 👉 Décode en asynchrone pour les autres
+  decoding="async"
+  // 👉 Optionnel : Blur uniquement sur la première (évite du HTML/base64 en trop)
+  {...(index === 0
+    ? { placeholder: "blur", blurDataURL: "data:image/jpeg;base64,..." }
+    : {})}
+/>
 
             {/* 📱 Overlay Instagram au hover */}
             <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">

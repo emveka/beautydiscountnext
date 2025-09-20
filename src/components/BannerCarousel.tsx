@@ -37,7 +37,7 @@ export default function BannerCarousel({
 
   const goToSlide = (index: number) => setCurrentSlide(index);
 
-  // Autoplay: uniquement côté client car useEffect n’exécute pas côté serveur
+  // Autoplay côté client
   useEffect(() => {
     if (!autoplayInterval) return;
     const id = setInterval(nextSlide, autoplayInterval);
@@ -47,8 +47,6 @@ export default function BannerCarousel({
   return (
     <div
       className={`relative w-full overflow-hidden ${className}`}
-      // Optionnel si tu reintroduis un rendu différent SSR/CSR :
-      // suppressHydrationWarning
       onTouchStart={(e) => (touchStart = e.targetTouches[0].clientX)}
       onTouchMove={(e) => (touchEnd = e.targetTouches[0].clientX)}
       onTouchEnd={() => {
@@ -60,44 +58,58 @@ export default function BannerCarousel({
         touchEnd = null;
       }}
     >
-      <div className="
-        relative
-        h-[200px]
-        sm:h-[280px]
-        md:h-[280px]
-        lg:h-[500px]
-        xl:h-[600px]
-        w-full
-        max-w-[1499px]
-        mx-auto
-      ">
+      <div
+        className="
+          relative
+          h-[200px]
+          sm:h-[280px]
+          md:h-[280px]
+          lg:h-[500px]
+          xl:h-[600px]
+          w-full
+          max-w-[1499px]
+          mx-auto
+        "
+      >
         {/* Slides */}
         <div className="relative h-full w-full overflow-hidden">
-          {slides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
-                index === currentSlide
-                  ? "translate-x-0"
-                  : index < currentSlide
-                  ? "-translate-x-full"
-                  : "translate-x-full"
-              }`}
-            >
-              <Image
-                src={slide.imageUrl}
-                alt={slide.imageAlt}
-                fill
-                draggable={false}
-                className="object-contain sm:object-cover object-center"
-                priority={index === 0}
-                fetchPriority={index === 0 ? "high" : undefined}
-                sizes="100vw"
-                placeholder="blur"
-                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-              />
-            </div>
-          ))}
+          {slides.map((slide, index) => {
+            const isFirst = index === 0;
+            return (
+              <div
+                key={slide.id}
+                className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
+                  index === currentSlide
+                    ? "translate-x-0"
+                    : index < currentSlide
+                    ? "-translate-x-full"
+                    : "translate-x-full"
+                }`}
+              >
+                <Image
+                  src={slide.imageUrl}
+                  alt={slide.imageAlt}
+                  fill
+                  draggable={false}
+                  className="object-contain sm:object-cover object-center"
+                  // 👉 Une seule image prioritaire (le 1er slide)
+                  priority={isFirst}
+                  loading={isFirst ? "eager" : "lazy"}
+                  fetchPriority={isFirst ? "high" : "auto"}
+                  decoding="async"
+                  sizes="100vw"
+                  // 👉 Blur/LQIP uniquement sur le 1er slide (évite d'alourdir le HTML)
+                  {...(isFirst
+                    ? {
+                        placeholder: "blur",
+                        blurDataURL:
+                          "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q==",
+                      }
+                    : {})}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Flèches */}
@@ -128,7 +140,9 @@ export default function BannerCarousel({
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={`w-1.5 h-1.5 sm:w-3 sm:h-3 rounded-full transition-all duration-200 touch-manipulation border border-white/20 ${
-                  index === currentSlide ? "bg-white scale-125 shadow-lg" : "bg-white/40 hover:bg-white/70 active:bg-white/80"
+                  index === currentSlide
+                    ? "bg-white scale-125 shadow-lg"
+                    : "bg-white/40 hover:bg-white/70 active:bg-white/80"
                 }`}
                 aria-label={`Aller au slide ${index + 1}`}
                 style={{ minWidth: "12px", minHeight: "12px" }}
