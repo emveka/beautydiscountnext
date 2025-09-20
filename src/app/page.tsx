@@ -18,8 +18,15 @@ const homeCarouselSlides = [
   {
     id: 2,
     title: "Banner Beauté 2", 
-    imageUrl: "/banners/longevity-care-fr.webp",
+    imageUrl: "/banners/Banner4.webp",
     imageAlt: "Promotion beauté 2",
+    linkUrl: "/nouveautes"
+  },
+  {
+    id: 3,
+    title: "Banner Beautilux", 
+    imageUrl: "/banners/Banner3.webp",
+    imageAlt: "Promotion beauté 3",
     linkUrl: "/nouveautes"
   },
 ];
