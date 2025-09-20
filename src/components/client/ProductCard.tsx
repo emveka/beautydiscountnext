@@ -174,10 +174,10 @@ export default function ProductCard({
       
       {/* ✅ Contenu SEO thématique invisible */}
       <div className="sr-only">
-        Produit capillaire {product.name} pour soins beauté professionnels. 
+        Produit capillaire {product.name} cosmétique beauté professionnelle. 
         {brandDisplayName && `Marque ${brandDisplayName}.`}
         {isOnSale && `En promotion avec ${discount}% de réduction.`}
-        Cosmétique de qualité salon disponible chez BeautyDiscount Maroc.
+        Cosmétique qualité salon disponible chez BeautyDiscount Maroc.
       </div>
 
       {/* ✅ BADGES REPOSITIONNÉS AVEC SUPPORT PROMOTIONS */}
@@ -194,7 +194,7 @@ export default function ProductCard({
                   ? { backgroundColor: product.badgeColor }
                   : undefined
               }
-              aria-hidden="true" // ✅ MASQUÉ DU SEO
+              aria-hidden="true"
             >
               {product.badgeText}
             </span>
@@ -450,7 +450,7 @@ export default function ProductCard({
                   <svg width="12" height="12" className="sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                   </svg>
-                  {/* ✅ TEXTE BOUTON IDENTIQUE - JUSTE MASQUÉ DU SEO */}
+                  {/* ✅ TEXTE BOUTON ORIGINAL - JUSTE MASQUÉ DU SEO */}
                   {showPromotionBadge && isOnSale ? (
                     <>
                       <span className="hidden sm:inline truncate" aria-hidden="true">Profiter !</span>
