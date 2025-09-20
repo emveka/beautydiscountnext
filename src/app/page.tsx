@@ -1,11 +1,57 @@
-// =================================================================
-// 📱 MOBILE OPTIMIZED - app/page.tsx
-// =================================================================
-
+// app/page.tsx
+import { Metadata } from "next";
 import BannerCarousel from '@/components/BannerCarousel';
-import HomeSection from '@/components/HomeSection';
+import HomeSection from '@/components/server/HomeSection';
 import InstagramGallery from '@/components/InstagramGallery';
 import React from 'react';
+
+// Métadonnées avec Canonical Tag
+export const metadata: Metadata = {
+  title: "BeautyDiscount - Boutique produits Capillaires, Cosmétique et beauté au Maroc",
+  description: "Découvrez notre sélection de produits capillaires, cosmétiques et de beauté à prix discount au Maroc. Lissages, soins, maquillage et plus encore.",
+  keywords: "beauté, cosmétiques, capillaire, lissage, maroc, discount, soins",
+  
+  // URL canonique pour la page d'accueil
+  alternates: {
+    canonical: "https://beautydiscount.ma"
+  },
+
+  // Open Graph
+  openGraph: {
+    title: "BeautyDiscount - Boutique beauté au Maroc",
+    description: "Produits de beauté à prix discount au Maroc",
+    url: "https://beautydiscount.ma",
+    type: 'website',
+    images: [
+      {
+        url: "https://beautydiscount.ma/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "BeautyDiscount",
+      }
+    ],
+  },
+
+  // Twitter Card
+  twitter: {
+    card: 'summary_large_image',
+    title: "BeautyDiscount - Boutique beauté au Maroc",
+    description: "Produits de beauté à prix discount au Maroc",
+  },
+
+  // Robots
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+};
 
 const homeCarouselSlides = [
   {
@@ -34,12 +80,12 @@ const homeCarouselSlides = [
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* ✅ H1 principal pour SEO */}
+      {/* H1 principal pour SEO */}
       <h1 className="sr-only">
         BeautyDiscount - Boutique produits Capillaires, Cosmétique et beauté au Maroc.
       </h1>
 
-      {/* 📱 MOBILE: Hero Banner Carousel */}
+      {/* Hero Banner Carousel */}
       <section className="w-full">
         <BannerCarousel 
           slides={homeCarouselSlides}
@@ -47,7 +93,7 @@ export default function HomePage() {
         />
       </section>
 
-      {/* 📱 MOBILE: Sections produits optimisées avec alternance de couleurs */}
+      {/* Sections produits avec H2 présents côté serveur */}
       <HomeSection
         categorySlug="lissages"
         title="Lissages"
@@ -88,7 +134,7 @@ export default function HomePage() {
         containerClass="bg-gray-50"
       />
 
-      {/* 📱 MOBILE: Instagram Gallery - 6 images sur toute la largeur */}
+      {/* Instagram Gallery */}
       <InstagramGallery />
     </div>
   );

@@ -25,6 +25,9 @@ const inter = Inter({
  * Optimisation SEO et réseaux sociaux
  */
 export const metadata: Metadata = {
+  // ✅ AJOUT : Configuration de base pour les URLs
+  metadataBase: new URL('https://beautydiscount.ma'),
+  
   title: {
     default: 'BeautyDiscount - Fournisseur #1 Beauté au Maroc',
     template: '%s | BeautyDiscount'
@@ -48,7 +51,12 @@ export const metadata: Metadata = {
   creator: 'BeautyDiscount',
   publisher: 'BeautyDiscount',
   
-  // Open Graph (Facebook, LinkedIn) - sans modifiedTime qui n'existe pas
+  // ✅ AJOUT : URL canonique par défaut
+  alternates: {
+    canonical: '/'
+  },
+  
+  // Open Graph (Facebook, LinkedIn)
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
@@ -75,7 +83,7 @@ export const metadata: Metadata = {
     creator: '@beautydiscount',
   },
   
-  // Métadonnées de fraîcheur dans other (qui accepte des propriétés personnalisées)
+  // Métadonnées de fraîcheur dans other
   other: {
     'og:updated_time': new Date().toISOString(),
     'article:modified_time': new Date().toISOString(),
@@ -118,7 +126,7 @@ interface RootLayoutProps {
 
 /**
  * RootLayout - Layout principal de l'application
- * Version originale sans polyfills compliqués
+ * Version corrigée avec canonical tag
  */
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
