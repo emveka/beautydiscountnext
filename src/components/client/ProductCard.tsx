@@ -16,8 +16,8 @@ import {
 interface ProductCardProps {
   product: Product;
   priority?: boolean;
-  showPromotionBadge?: boolean; // ✅ NOUVELLE PROP AJOUTÉE
-  showCategoryTags?: boolean;   // ✅ NOUVELLE PROP AJOUTÉE
+  showPromotionBadge?: boolean;
+  showCategoryTags?: boolean;
 }
 
 /**
@@ -26,12 +26,13 @@ interface ProductCardProps {
  * 🎯 Padding réduit, tailles responsive, meilleure lisibilité
  * 🔧 NOUVEAU: Support complet des badges promotions
  * 💰 NOUVEAU: Affichage des économies et prix barrés
+ * 🔍 SEO: Mots d'interface masqués avec aria-hidden
  */
 export default function ProductCard({ 
   product, 
   priority = false,
-  showPromotionBadge = false, // ✅ NOUVELLE PROP
-  showCategoryTags = false    // ✅ NOUVELLE PROP
+  showPromotionBadge = false,
+  showCategoryTags = false
 }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -171,6 +172,14 @@ export default function ProductCard({
   return (
     <article className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group relative flex flex-col">
       
+      {/* ✅ Contenu SEO thématique invisible */}
+      <div className="sr-only">
+        Produit capillaire {product.name} pour soins beauté professionnels. 
+        {brandDisplayName && `Marque ${brandDisplayName}.`}
+        {isOnSale && `En promotion avec ${discount}% de réduction.`}
+        Cosmétique de qualité salon disponible chez BeautyDiscount Maroc.
+      </div>
+
       {/* ✅ BADGES REPOSITIONNÉS AVEC SUPPORT PROMOTIONS */}
       <div className="absolute top-1 sm:top-2 left-0 right-0 z-10 flex justify-between items-start px-1 sm:px-2">
         {/* Badges à gauche */}
@@ -185,6 +194,7 @@ export default function ProductCard({
                   ? { backgroundColor: product.badgeColor }
                   : undefined
               }
+              aria-hidden="true" // ✅ MASQUÉ DU SEO
             >
               {product.badgeText}
             </span>
@@ -192,14 +202,14 @@ export default function ProductCard({
           
           {/* Badge stock épuisé */}
           {product.stock === "Rupture" && (
-            <span className="bg-gray-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm">
+            <span className="bg-gray-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm" aria-hidden="true">
               Épuisé
             </span>
           )}
 
           {/* Badge "Dans le panier" */}
           {productInCart && (
-            <span className="bg-green-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-0.5 sm:gap-1">
+            <span className="bg-green-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-0.5 sm:gap-1" aria-hidden="true">
               <svg width="10" height="10" className="sm:w-3 sm:h-3" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
               </svg>
@@ -217,13 +227,13 @@ export default function ProductCard({
             <>
               {isHotDeal ? (
                 // Badge Hot Deal
-                <span className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-0.5">
+                <span className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-0.5" aria-hidden="true">
                   <span>🔥</span>
                   <span>-{discount}%</span>
                 </span>
               ) : (
                 // Badge promo standard
-                <span className="bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm">
+                <span className="bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm" aria-hidden="true">
                   -{discount}%
                 </span>
               )}
@@ -232,7 +242,7 @@ export default function ProductCard({
 
           {/* ✅ BADGE BEST DEAL pour très grosses remises */}
           {showPromotionBadge && discount && discount >= 50 && (
-            <span className="bg-yellow-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-0.5">
+            <span className="bg-yellow-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-0.5" aria-hidden="true">
               <span>⭐</span>
               <span className="hidden sm:inline">BEST</span>
             </span>
@@ -240,7 +250,7 @@ export default function ProductCard({
 
           {/* Badge de réduction standard (si pas de showPromotionBadge) */}
           {!showPromotionBadge && discount && discount > 0 && (
-            <span className="bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm">
+            <span className="bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-sm" aria-hidden="true">
               -{discount}%
             </span>
           )}
@@ -253,7 +263,7 @@ export default function ProductCard({
         {/* Image du produit */}
         <div className="aspect-square bg-gray-50 overflow-hidden relative">
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse">
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse" aria-hidden="true">
               <div className="w-8 h-8 sm:w-12 sm:h-12 border-2 sm:border-4 border-gray-300 border-t-rose-300 animate-spin"></div>
             </div>
           )}
@@ -288,7 +298,7 @@ export default function ProductCard({
             
             {/* Contenance */}
             {product.contenance && (
-              <span className="text-[9px] sm:text-xs text-gray-500 bg-gray-100 px-1 sm:px-2 py-0.5 sm:py-1 rounded whitespace-nowrap flex-shrink-0">
+              <span className="text-[9px] sm:text-xs text-gray-500 bg-gray-100 px-1 sm:px-2 py-0.5 sm:py-1 rounded whitespace-nowrap flex-shrink-0" aria-hidden="true">
                 {product.contenance}
               </span>
             )}
@@ -301,7 +311,7 @@ export default function ProductCard({
 
           {/* ✅ TAGS CATÉGORIES (SI ACTIVÉS) */}
           {showCategoryTags && (product.categoryIds?.length > 0 || product.subCategoryIds?.length > 0) && (
-            <div className="flex flex-wrap gap-1 mb-2">
+            <div className="flex flex-wrap gap-1 mb-2" aria-hidden="true">
               {/* Affichage des catégories principales */}
               {product.categoryIds?.slice(0, 2).map((categoryId, index) => (
                 <span
@@ -332,7 +342,7 @@ export default function ProductCard({
                   {/* ✅ ÉCONOMIES AMÉLIORÉES POUR PROMOTIONS */}
                   <span className={`text-[10px] sm:text-xs font-medium ${
                     showPromotionBadge ? 'text-red-600' : 'text-green-600'
-                  }`}>
+                  }`} aria-hidden="true">
                     {showPromotionBadge ? (
                       <>
                         <span className="hidden sm:inline">💰 Économisez </span>
@@ -347,7 +357,7 @@ export default function ProductCard({
                       </>
                     )}
                   </span>
-                  <span className="text-gray-400 line-through text-[10px] sm:text-sm">
+                  <span className="text-gray-400 line-through text-[10px] sm:text-sm" aria-hidden="true">
                     {formatPrice(product.originalPrice)}
                   </span>
                 </div>
@@ -357,7 +367,7 @@ export default function ProductCard({
             {/* 📱 MOBILE: Stock et prix compactés */}
             <div className="flex items-center justify-between">
               {/* Statut du stock */}
-              <div className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs ${getStockStatusClasses(product.stock)}`}>
+              <div className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs ${getStockStatusClasses(product.stock)}`} aria-hidden="true">
                 <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-current/60" />
                 <span>{product.stock}</span>
               </div>
@@ -387,8 +397,8 @@ export default function ProductCard({
                 <svg width="12" height="12" className="sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                 </svg>
-                <span className="hidden sm:inline truncate">Voir le panier ({quantityInCart})</span>
-                <span className="sm:hidden truncate">Panier ({quantityInCart})</span>
+                <span className="hidden sm:inline truncate" aria-hidden="true">Voir le panier ({quantityInCart})</span>
+                <span className="sm:hidden truncate" aria-hidden="true">Panier ({quantityInCart})</span>
               </button>
               <button 
                 onClick={handleAddToCart}
@@ -427,29 +437,29 @@ export default function ProductCard({
               {isAddingToCart ? (
                 <>
                   <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent animate-spin flex-shrink-0" aria-hidden="true" />
-                  <span className="hidden sm:inline truncate">Ajout...</span>
-                  <span className="sm:hidden">...</span>
+                  <span className="hidden sm:inline truncate" aria-hidden="true">Ajout...</span>
+                  <span className="sm:hidden" aria-hidden="true">...</span>
                 </>
               ) : product.stock === "Rupture" ? (
                 <>
-                  <span className="hidden sm:inline truncate">Non disponible</span>
-                  <span className="sm:hidden truncate">Épuisé</span>
+                  <span className="hidden sm:inline truncate" aria-hidden="true">Non disponible</span>
+                  <span className="sm:hidden truncate" aria-hidden="true">Épuisé</span>
                 </>
               ) : (
                 <>
                   <svg width="12" height="12" className="sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                   </svg>
-                  {/* ✅ TEXTE BOUTON ADAPTÉ POUR PROMOTIONS */}
+                  {/* ✅ TEXTE BOUTON IDENTIQUE - JUSTE MASQUÉ DU SEO */}
                   {showPromotionBadge && isOnSale ? (
                     <>
-                      <span className="hidden sm:inline truncate">Profiter !</span>
-                      <span className="sm:hidden truncate">Profiter</span>
+                      <span className="hidden sm:inline truncate" aria-hidden="true">Profiter !</span>
+                      <span className="sm:hidden truncate" aria-hidden="true">Profiter</span>
                     </>
                   ) : (
                     <>
-                      <span className="hidden sm:inline truncate">Ajouter au panier</span>
-                      <span className="sm:hidden truncate">Ajouter</span>
+                      <span className="hidden sm:inline truncate" aria-hidden="true">Ajouter au panier</span>
+                      <span className="sm:hidden truncate" aria-hidden="true">Ajouter</span>
                     </>
                   )}
                 </>
@@ -461,8 +471,8 @@ export default function ProductCard({
         {/* 📱 MOBILE: Indicateur de livraison plus compact */}
         <div className="h-3 sm:h-5 flex items-center mt-0.5 sm:mt-1">
           {product.stock === "En Stock" && (
-            <div className="flex items-center gap-0.5 sm:gap-1 text-green-600 text-[9px] sm:text-xs">
-              <svg className="w-2 h-2 sm:w-3 sm:h-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <div className="flex items-center gap-0.5 sm:gap-1 text-green-600 text-[9px] sm:text-xs" aria-hidden="true">
+              <svg className="w-2 h-2 sm:w-3 sm:h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span className="hidden sm:inline">Livraison le {getDeliveryDate()}</span>
@@ -474,7 +484,7 @@ export default function ProductCard({
         {/* Message de confirmation d'ajout - Plus compact */}
         {isAddingToCart && (
           <div className="mt-0.5 sm:mt-1 p-1 sm:p-2 bg-green-50 border border-green-200 text-center" role="status" aria-live="polite">
-            <span className="text-green-700 text-[9px] sm:text-xs font-medium">
+            <span className="text-green-700 text-[9px] sm:text-xs font-medium" aria-hidden="true">
               ✅ <span className="hidden sm:inline">Produit ajouté au panier avec succès !</span>
               <span className="sm:hidden">Ajouté !</span>
             </span>
