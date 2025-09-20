@@ -1,4 +1,4 @@
-// components/HomeSection.tsx - CONVERTI EN SERVER COMPONENT
+// components/HomeSection.tsx - VERSION ENRICHIE avec contenu thématique
 import React from 'react';
 import ProductCard from '@/components/client/ProductCard';
 import { 
@@ -21,7 +21,7 @@ interface HomeSectionProps {
 /**
  * HomeSection en Server Component pour SEO optimal
  * ✅ Les H2 seront présents dans le HTML initial
- * ✅ Pas de loading state - rendu direct côté serveur
+ * ✅ Contenu textuel enrichi pour mots-clés thématiques
  */
 const HomeSection = async ({
   categorySlug,
@@ -38,7 +38,6 @@ const HomeSection = async ({
 
   try {
     if (subCategorySlug) {
-      // Récupération sous-catégorie
       subCategory = categorySlug 
         ? await getSubCategoryBySlug(subCategorySlug, categorySlug)
         : await getSubCategoryBySlug(subCategorySlug);
@@ -48,7 +47,6 @@ const HomeSection = async ({
         return null;
       }
 
-      // Récupération produits et catégorie parente en parallèle
       const [productsData, parentCategory] = await Promise.all([
         getSubCategoryProductsWithBrands(subCategory.id),
         categorySlug ? getCategoryBySlug(categorySlug) : Promise.resolve(null)
@@ -58,7 +56,6 @@ const HomeSection = async ({
       category = parentCategory;
 
     } else if (categorySlug) {
-      // Récupération catégorie
       category = await getCategoryBySlug(categorySlug);
       
       if (!category) {
@@ -66,7 +63,6 @@ const HomeSection = async ({
         return null;
       }
 
-      // Récupération produits
       const productsData = await getCategoryProductsWithBrands(category.id);
       products = productsData
         .sort((a, b) => b.score - a.score)
@@ -76,7 +72,6 @@ const HomeSection = async ({
       return null;
     }
 
-    // Pas de produits = pas d'affichage
     if (products.length === 0) {
       return null;
     }
@@ -86,7 +81,31 @@ const HomeSection = async ({
     return null;
   }
 
-  // Fonctions utilitaires
+  // ✅ CONTENU THÉMATIQUE pour enrichir les mots-clés
+  const getThematicContent = () => {
+    const content = {
+      'lissages': 'Découvrez nos traitements lissage professionnel pour cheveux. Lissage brésilien, japonais et progressif pour tous types de cheveux. Obtenez des cheveux lisses, brillants et disciplinés avec nos produits capillaires de qualité professionnelle.',
+      
+      'kits-mini-lissage': 'Kits de lissage complets pour un traitement capillaire à domicile. Nos kits mini lissage contiennent tout le nécessaire : shampooing, masque, sérum et protection thermique pour un lissage parfait.',
+      
+      'poudres-decolorantes': 'Poudres décolorantes professionnelles pour éclaircir et décolorer les cheveux. Décoloration capillaire sûre et efficace pour créer des bases claires avant coloration. Produits de décoloration de salon.',
+      
+      'masques-capillaires': 'Masques capillaires réparateurs et nourrissants pour cheveux abîmés. Soins intensifs pour cheveux secs, cassants ou colorés. Masques hydratants, protéinés et reconstructeurs pour une chevelure en pleine santé.',
+      
+      'cosmetique-coreen': 'Cosmétiques coréens authentiques pour le visage et le corps. Skincare coréen avec essence, sérums, masques et crèmes. Beauté coréenne K-beauty pour une peau parfaite selon les rituels de beauté asiatiques.'
+    };
+    
+    if (subCategorySlug && content[subCategorySlug as keyof typeof content]) {
+      return content[subCategorySlug as keyof typeof content];
+    }
+    
+    if (categorySlug && content[categorySlug as keyof typeof content]) {
+      return content[categorySlug as keyof typeof content];
+    }
+    
+    return null;
+  };
+
   const getDisplayTitle = (): string => {
     if (title) return title;
     if (subCategory) return subCategory.name;
@@ -109,6 +128,8 @@ const HomeSection = async ({
     return '#';
   };
 
+  const thematicContent = getThematicContent();
+
   return (
     <section className={`py-6 sm:py-10 bg-white ${containerClass}`}>
       <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
@@ -120,6 +141,15 @@ const HomeSection = async ({
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
               {getDisplayTitle()}
             </h2>
+            
+            {/* ✅ CONTENU THÉMATIQUE enrichi */}
+            {thematicContent && (
+              <div className="mt-3 mb-4">
+                <p className="text-gray-700 text-sm leading-relaxed max-w-4xl">
+                  {thematicContent}
+                </p>
+              </div>
+            )}
             
             {getDisplayDescription() && (
               <p className="text-gray-600 text-sm sm:text-base leading-relaxed max-w-2xl">
