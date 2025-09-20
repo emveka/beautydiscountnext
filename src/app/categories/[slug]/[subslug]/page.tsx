@@ -22,7 +22,7 @@ interface SubCategoryPageProps {
  * Page de sous-catégorie - Server Component
  * Récupère les données côté serveur et les passe aux composants clients
  * ✅ NOUVEAU : Inclut le skeleton loading avec Suspense
- * ✅ CORRIGÉ : Hiérarchie H1-H4 appropriée
+ * ✅ CORRIGÉ : Hiérarchie H1-H4 appropriée avec H1 ajouté
  * 
  * URL : /categories/lissages/lissage-bresilien
  * Params : { slug: "lissages", subslug: "lissage-bresilien" }
@@ -71,9 +71,48 @@ export default async function SubCategoryPage({ params }: SubCategoryPageProps) 
           </div>
         </section>
 
+        {/* ✅ NOUVEAU : Section titre principal avec H1 pour sous-catégorie */}
+        <section className="bg-white border-b border-gray-100">
+          <div className="w-full max-w-[1500px] mx-auto px-4 py-6">
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                {subCategory.name}
+              </h1>
+              
+              {/* Description de la sous-catégorie si elle existe */}
+              {subCategory.description && (
+                <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto mb-3">
+                  {subCategory.description}
+                </p>
+              )}
+              
+              {/* Lien vers la catégorie parente */}
+              <p className="text-gray-500 text-sm mb-2">
+                Dans la catégorie{' '}
+                <a 
+                  href={`/categories/${parentCategory.slug}`}
+                  className="text-blue-600 hover:text-blue-800 underline transition-colors"
+                >
+                  {parentCategory.name}
+                </a>
+              </p>
+              
+              {/* Statistiques des produits */}
+              {products.length > 0 && (
+                <p className="text-gray-500 text-sm">
+                  {products.length} produit{products.length > 1 ? 's' : ''} disponible{products.length > 1 ? 's' : ''}
+                  {siblingSubCategories.length > 1 && (
+                    <span className="ml-2">
+                      • {siblingSubCategories.length - 1} autre{siblingSubCategories.length > 2 ? 's' : ''} sous-catégorie{siblingSubCategories.length > 2 ? 's' : ''}
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
 
-
-        {/* ✅ CORRIGÉ : Grid des produits sans H1 (CategoryInfo contient déjà le H1) */}
+        {/* ✅ CORRIGÉ : Grid des produits SANS H1 (car déjà affiché ci-dessus) */}
         <section className="flex-1">
           <div className="bg-white w-full max-w-[1500px] mx-auto">
             <ProductGrid 
@@ -82,7 +121,7 @@ export default async function SubCategoryPage({ params }: SubCategoryPageProps) 
               categoryName={subCategory.name}
               subCategories={siblingSubCategories} // Autres sous-catégories pour filtres
               currentSubCategoryId={subCategory.id} // ✅ Pour marquer la sous-cat actuelle
-              showPageTitle={false} // ✅ NOUVEAU : Empêche ProductGrid d'afficher son propre H1
+              showPageTitle={false} // ✅ CORRECT : Empêche ProductGrid d'afficher son propre H1
             />
           </div>
         </section>
@@ -102,10 +141,11 @@ export async function generateMetadata({ params }: SubCategoryPageProps): Promis
   try {
     const { slug, subslug } = await params;
 
-        // ✅ AJOUTEZ CETTE VÉRIFICATION POUR BLOQUER LES FICHIERS .map
+    // ✅ AJOUTEZ CETTE VÉRIFICATION POUR BLOQUER LES FICHIERS .map
     if (subslug.endsWith('.js.map') || subslug.endsWith('.map') || subslug.includes('.js')) {
       notFound();
     }
+    
     const [parentCategory, subCategory] = await Promise.all([
       getCategoryBySlug(slug),
       getSubCategoryBySlug(subslug, slug)

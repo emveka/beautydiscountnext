@@ -40,57 +40,77 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     console.log(`Catégorie "${category.name}" chargée avec ${products.length} produits et ${subCategories.length} sous-catégories`);
     
     return (
-      <div className="min-h-screen bg-white">
-        {/* Breadcrumb Navigation */}
-        <section className="bg-white border-b border-gray-200">
-          <div className="w-full max-w-[1500px] mx-auto px-4 py-4">
-            <BreadcrumbNav 
-              items={[
-                { name: "Accueil", href: "/" },
-                { name: "Catégories", href: "/categories" },
-                { name: category.name, href: `/categories/${category.slug}` }
-              ]} 
-            />
-          </div>
-        </section>
-
-
-
-        {/* ✅ CORRIGÉ : Grid des produits sans H1 (CategoryInfo contient déjà le H1) */}
-        <section className="flex-1">
-          <div className="bg-white w-full max-w-[1500px] mx-auto">
-            <ProductGrid 
-              products={products}
-              categorySlug={slug}
-              categoryName={category.name}
-              subCategories={subCategories}
-              showPageTitle={false} // ✅ NOUVEAU : Empêche ProductGrid d'afficher son propre H1
-            />
-          </div>
-        </section>
-
-        {/* Section description longue pour le SEO - Compact et aligné */}
-        {category.descriptionLongue && (
-          <section className="bg-gray-50 border-t border-gray-100">
-            <div className="w-full max-w-[1500px] mx-auto px-4 py-6">
-              <div className="w-full text-center">
-                <h2 className="text-lg font-medium text-gray-700 mb-3">
-                  En savoir plus sur {category.name}
-                </h2>
-                <div className="text-gray-600 text-sm leading-5 text-justify">
-                  <div
-                    className="whitespace-pre-line"
-                    dangerouslySetInnerHTML={{
-                      __html: category.descriptionLongue.replace(/\n/g, '<br />')
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
+  <div className="min-h-screen bg-white">
+    {/* Breadcrumb Navigation */}
+    <section className="bg-white border-b border-gray-200">
+      <div className="w-full max-w-[1500px] mx-auto px-4 py-4">
+        <BreadcrumbNav 
+          items={[
+            { name: "Accueil", href: "/" },
+            { name: "Catégories", href: "/categories" },
+            { name: category.name, href: `/categories/${category.slug}` }
+          ]} 
+        />
       </div>
-    );
+    </section>
+
+    {/* ✅ NOUVEAU : Section titre principal avec H1 */}
+    <section className="bg-white border-b border-gray-100">
+      <div className="w-full max-w-[1500px] mx-auto px-4 py-6">
+        <div className="text-center">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            {category.name}
+          </h1>
+          {category.description && (
+            <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto">
+              {category.description}
+            </p>
+          )}
+          {products.length > 0 && (
+            <p className="text-gray-500 text-sm mt-2">
+              {products.length} produit{products.length > 1 ? 's' : ''} disponible{products.length > 1 ? 's' : ''}
+              {subCategories.length > 0 && ` dans ${subCategories.length} sous-catégorie${subCategories.length > 1 ? 's' : ''}`}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+
+    {/* Grid des produits SANS H1 (car déjà affiché ci-dessus) */}
+    <section className="flex-1">
+      <div className="bg-white w-full max-w-[1500px] mx-auto">
+        <ProductGrid 
+          products={products}
+          categorySlug={slug}
+          categoryName={category.name}
+          subCategories={subCategories}
+          showPageTitle={false} // ✅ Correct car H1 affiché au-dessus
+        />
+      </div>
+    </section>
+
+    {/* Section description longue pour le SEO */}
+    {category.descriptionLongue && (
+      <section className="bg-gray-50 border-t border-gray-100">
+        <div className="w-full max-w-[1500px] mx-auto px-4 py-6">
+          <div className="w-full text-center">
+            <h2 className="text-lg font-medium text-gray-700 mb-3">
+              En savoir plus sur {category.name}
+            </h2>
+            <div className="text-gray-600 text-sm leading-5 text-justify">
+              <div
+                className="whitespace-pre-line"
+                dangerouslySetInnerHTML={{
+                  __html: category.descriptionLongue.replace(/\n/g, '<br />')
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
+  </div>
+);
   } catch (error) {
     console.error("Erreur lors du chargement de la page catégorie:", error);
     notFound();
