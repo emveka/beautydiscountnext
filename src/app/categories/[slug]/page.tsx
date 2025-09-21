@@ -43,7 +43,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   <div className="min-h-screen bg-white">
     {/* Breadcrumb Navigation */}
     <section className="bg-white border-b border-gray-200">
-      <div className="w-full max-w-[1500px] mx-auto px-4 py-4">
+      <div className="w-full max-w-[1500px] mx-auto px-2 py-2">
         <BreadcrumbNav 
           items={[
             { name: "Accueil", href: "/" },

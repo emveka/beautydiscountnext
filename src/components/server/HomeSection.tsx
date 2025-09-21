@@ -202,5 +202,4 @@ const HomeSection = async ({
   );
 };
 
-export const revalidate = 60; // Revalider toutes les 60 secondes
 export default HomeSection;
