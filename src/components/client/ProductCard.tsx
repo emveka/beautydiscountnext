@@ -82,14 +82,14 @@ export default function ProductCard({
    */
   const getCompactStockText = (stock: string) => {
     const stockMappings: Record<string, { mobile: string; desktop: string }> = {
-      'En Stock': { mobile: 'Stock', desktop: 'En Stock' },
-      'Sur Commande': { mobile: 'S/Cmd', desktop: 'S/Commande' },
+      'En Stock': { mobile: 'En Stock', desktop: 'En Stock' },
+      'Sur Commande': { mobile: 'Sur Commande', desktop: 'Sur Commande' },
       'Rupture': { mobile: 'Épuisé', desktop: 'Rupture' },
-      'Disponible': { mobile: 'Dispo', desktop: 'Disponible' },
+      'Disponible': { mobile: 'Disponible', desktop: 'Disponible' },
       'Bientôt disponible': { mobile: 'Bientôt', desktop: 'Bientôt' }
     };
     
-    return stockMappings[stock] || { mobile: stock.slice(0, 6), desktop: stock };
+    return stockMappings[stock] || { mobile: stock, desktop: stock };
   };
 
   /**
@@ -403,14 +403,14 @@ export default function ProductCard({
               <div className={`inline-flex items-center gap-0.5 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] font-medium whitespace-nowrap flex-shrink-0 ${getStockStatusClasses(product.stock)}`} aria-hidden="true">
                 <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-current/60 flex-shrink-0" />
                 <span className="leading-none">
-                  {/* Affichage responsive du statut */}
+                  {/* Affichage responsive du statut - MAINTENANT IDENTIQUE */}
                   <span className="sm:hidden">{stockDisplayText.mobile}</span>
                   <span className="hidden sm:inline">{stockDisplayText.desktop}</span>
                 </span>
               </div>
               
-              {/* ✅ PRIX COMPACT - SANS RETOUR À LA LIGNE */}
-              <span className={`font-bold text-xs sm:text-base leading-none whitespace-nowrap flex-shrink-0 ${
+              {/* ✅ PRIX COMPACT ET PLUS GRAND - SANS RETOUR À LA LIGNE */}
+              <span className={`font-bold text-[18px] sm:text-lg leading-none whitespace-nowrap flex-shrink-0 ${
                 showPromotionBadge && isOnSale ? 'text-red-600' : 'text-red-600'
               }`}>
                 {compactPrice}
