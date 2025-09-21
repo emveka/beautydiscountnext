@@ -285,7 +285,7 @@ export default function ProductCard({
         </div>
 
         {/* 📱 MOBILE: Informations du produit avec padding réduit */}
-        <div className="p-2 sm:p-4 flex-1 flex flex-col">
+        <div className="p-1 sm:p-1 flex-1 flex flex-col">
           
           {/* 📱 MOBILE: Marque et contenance plus compactes */}
           <div className="flex items-center justify-between gap-1 sm:gap-2 mb-1 sm:mb-2">
@@ -384,7 +384,7 @@ export default function ProductCard({
       </Link>
 
       {/* 🎯 SECTION DES BOUTONS D'ACTION OPTIMISÉE */}
-      <div className="px-2 sm:px-4 pb-1 sm:pb-2">
+      <div className="px-1 sm:px-1 pb-1 sm:pb-2">
         <div className="flex gap-1 sm:gap-2">
           {productInCart ? (
             /* Si le produit est déjà dans le panier */

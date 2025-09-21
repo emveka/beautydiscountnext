@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "BeautyDiscount - Lissages & Cosmétiques au Maroc",
   
   // ✅ DESCRIPTION avec mots-clés thématiques
-  description: "Découvrez nos lissages, kits mini lissage, poudres décolorantes, masques capillaires et cosmétiques coréen à prix discount au Maroc. Livraison rapide.",
+  description: "Découvrez nos lissages, kits mini lissage, poudres décolorantes, masques capillaires et cosmétiques coréen à prix discount au Maroc. Livraison rapide et Paiement à la réception du colis.",
   
   // ✅ MOTS-CLÉS basés sur le contenu réel de la page
   keywords: "lissages, kits mini lissage, poudres décolorantes, masques capillaires, cosmétiques coréen, beauté, maroc, discount, kératine, soins capillaires",

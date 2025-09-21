@@ -124,11 +124,7 @@ const soinsCapillairesSubItems: SubMenuItem[] = [
 // COLORATION - Sous-catégories
 const colorationSubItems: SubMenuItem[] = [
   { label: "Couleurs Naturelles", href: "/categories/coloration/couleurs-naturelles" },
-  { label: "Couleurs Fashion", href: "/categories/coloration/couleurs-fashion" },
   { label: "Colorations Bio", href: "/categories/coloration/colorations-bio" },
-  { label: "Colorations Temporaires", href: "/categories/coloration/temporaires" },
-  { label: "Craies Colorantes", href: "/categories/coloration/craies" },
-  { label: "Sprays Colorants", href: "/categories/coloration/sprays" },
   { label: "Poudres Décolorantes", href: "/categories/coloration/poudres-decolorantes" },
   { label: "Crèmes Décolorantes", href: "/categories/coloration/cremes-decolorantes" },
   { label: "Oxydants", href: "/categories/coloration/oxydants" },
@@ -139,19 +135,14 @@ const cosmetiqueCoreenSubItems: SubMenuItem[] = [
   { label: "Nettoyants", href: "/categories/cosmetique-coreen/nettoyants" },
   { label: "Essences & Toners", href: "/categories/cosmetique-coreen/essences" },
   { label: "Sérums", href: "/categories/cosmetique-coreen/serums" },
-  { label: "Crèmes Hydratantes", href: "/categories/cosmetique-coreen/cremes" },
-  { label: "Masques en Tissu", href: "/categories/cosmetique-coreen/masques-tissu" },
-  { label: "Masques à l'Argile", href: "/categories/cosmetique-coreen/masques-argile" },
-  { label: "Patches Hydrogel", href: "/categories/cosmetique-coreen/patches" },
+  { label: "Masques capillaires", href: "/categories/cosmetique-coreen/masque-capillaires" },
   { label: "BB & CC Crèmes", href: "/categories/cosmetique-coreen/bb-cc-cremes" },
-  { label: "Cushions", href: "/categories/cosmetique-coreen/cushions" },
-  { label: "Rouges à Lèvres", href: "/categories/cosmetique-coreen/rouges-levres" },
+
 ];
 
 // SOINS VISAGE - Sous-catégories
 const soinsVisageSubItems: SubMenuItem[] = [
   { label: "Nettoyants Doux", href: "/categories/soins-visage/nettoyants-doux" },
-  { label: "Exfoliants", href: "/categories/soins-visage/exfoliants" },
   { label: "Démaquillants", href: "/categories/soins-visage/demaquillants" },
   { label: "Crèmes Hydratantes", href: "/categories/soins-visage/cremes-hydratantes" },
   { label: "Sérums", href: "/categories/soins-visage/serums" },
