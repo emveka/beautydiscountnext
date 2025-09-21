@@ -1,5 +1,7 @@
-// components/HomeSection.tsx - VERSION ENRICHIE avec contenu thématique
-import React from 'react';
+// components/HomeSection.tsx - VERSION CLIENT COMPONENT avec mise à jour temps réel
+"use client"; // ← AJOUT DU "use client"
+
+import React, { useState, useEffect } from 'react';
 import ProductCard from '@/components/client/ProductCard';
 import { 
   getCategoryProductsWithBrands, 
@@ -19,11 +21,11 @@ interface HomeSectionProps {
 }
 
 /**
- * HomeSection en Server Component pour SEO optimal
- * ✅ Les H2 seront présents dans le HTML initial
- * ✅ Contenu textuel enrichi pour mots-clés thématiques
+ * ✅ HomeSection en Client Component pour mise à jour temps réel
+ * ✅ Récupération des données côté client avec useEffect
+ * ✅ Possibilité d'ajouter du polling pour synchronisation
  */
-const HomeSection = async ({
+const HomeSection = ({
   categorySlug,
   subCategorySlug,
   title,
@@ -32,54 +34,85 @@ const HomeSection = async ({
   containerClass = ""
 }: HomeSectionProps) => {
   
-  let products: Product[] = [];
-  let category: Category | null = null;
-  let subCategory: SubCategory | null = null;
+  // États pour gérer les données et le chargement
+  const [products, setProducts] = useState<Product[]>([]);
+  const [category, setCategory] = useState<Category | null>(null);
+  const [subCategory, setSubCategory] = useState<SubCategory | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  try {
-    if (subCategorySlug) {
-      subCategory = categorySlug 
-        ? await getSubCategoryBySlug(subCategorySlug, categorySlug)
-        : await getSubCategoryBySlug(subCategorySlug);
-      
-      if (!subCategory) {
-        console.warn(`Sous-catégorie "${subCategorySlug}" introuvable`);
-        return null;
+  // Fonction pour charger les données
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      if (subCategorySlug) {
+        // Chargement sous-catégorie
+        const fetchedSubCategory = categorySlug 
+          ? await getSubCategoryBySlug(subCategorySlug, categorySlug)
+          : await getSubCategoryBySlug(subCategorySlug);
+        
+        if (!fetchedSubCategory) {
+          console.warn(`Sous-catégorie "${subCategorySlug}" introuvable`);
+          setIsLoading(false);
+          return;
+        }
+
+        const [productsData, parentCategory] = await Promise.all([
+          getSubCategoryProductsWithBrands(fetchedSubCategory.id),
+          categorySlug ? getCategoryBySlug(categorySlug) : Promise.resolve(null)
+        ]);
+
+        setSubCategory(fetchedSubCategory);
+        setCategory(parentCategory);
+        setProducts(productsData.slice(0, maxProducts));
+
+      } else if (categorySlug) {
+        // Chargement catégorie
+        const fetchedCategory = await getCategoryBySlug(categorySlug);
+        
+        if (!fetchedCategory) {
+          console.warn(`Catégorie "${categorySlug}" introuvable`);
+          setIsLoading(false);
+          return;
+        }
+
+        const productsData = await getCategoryProductsWithBrands(fetchedCategory.id);
+        
+        setCategory(fetchedCategory);
+        setProducts(productsData
+          .sort((a, b) => b.score - a.score)
+          .slice(0, maxProducts)
+        );
+      } else {
+        console.warn('categorySlug ou subCategorySlug requis pour HomeSection');
+        setIsLoading(false);
+        return;
       }
 
-      const [productsData, parentCategory] = await Promise.all([
-        getSubCategoryProductsWithBrands(subCategory.id),
-        categorySlug ? getCategoryBySlug(categorySlug) : Promise.resolve(null)
-      ]);
-
-      products = productsData.slice(0, maxProducts);
-      category = parentCategory;
-
-    } else if (categorySlug) {
-      category = await getCategoryBySlug(categorySlug);
-      
-      if (!category) {
-        console.warn(`Catégorie "${categorySlug}" introuvable`);
-        return null;
-      }
-
-      const productsData = await getCategoryProductsWithBrands(category.id);
-      products = productsData
-        .sort((a, b) => b.score - a.score)
-        .slice(0, maxProducts);
-    } else {
-      console.warn('categorySlug ou subCategorySlug requis pour HomeSection');
-      return null;
+    } catch (error) {
+      console.error('Erreur dans HomeSection Client:', error);
+      setError('Erreur lors du chargement des produits');
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    if (products.length === 0) {
-      return null;
-    }
+  // Chargement initial
+  useEffect(() => {
+    loadData();
+  }, [categorySlug, subCategorySlug, maxProducts]);
 
-  } catch (error) {
-    console.error('Erreur dans HomeSection Server:', error);
-    return null;
-  }
+  // ✅ POLLING OPTIONNEL pour synchronisation temps réel
+  useEffect(() => {
+    // Polling toutes les 30 secondes pour vérifier les changements
+    const interval = setInterval(() => {
+      loadData();
+    }, 30000); // 30 secondes
+
+    return () => clearInterval(interval);
+  }, [categorySlug, subCategorySlug, maxProducts]);
 
   // ✅ CONTENU THÉMATIQUE pour enrichir les mots-clés
   const getThematicContent = () => {
@@ -130,14 +163,64 @@ const HomeSection = async ({
 
   const thematicContent = getThematicContent();
 
+  // État de chargement
+  if (isLoading) {
+    return (
+      <section className={`py-6 sm:py-10 bg-white ${containerClass}`}>
+        <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
+          <div className="animate-pulse">
+            <div className="flex justify-between items-start mb-4 sm:mb-8">
+              <div className="flex-1">
+                <div className="h-8 bg-gray-200 rounded-lg w-64 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-96 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-80"></div>
+              </div>
+              <div className="h-6 bg-gray-200 rounded w-20"></div>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3">
+              {Array.from({ length: maxProducts }).map((_, index) => (
+                <div key={index} className="bg-gray-200 aspect-square rounded animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // État d'erreur
+  if (error) {
+    return (
+      <section className={`py-6 sm:py-10 bg-white ${containerClass}`}>
+        <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
+          <div className="text-center py-8">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={loadData}
+              className="px-4 py-2 bg-rose-300 text-black rounded hover:bg-rose-400 transition-colors"
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Aucun produit trouvé
+  if (products.length === 0) {
+    return null;
+  }
+
   return (
     <section className={`py-6 sm:py-10 bg-white ${containerClass}`}>
       <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
         
-        {/* Header section avec H2 présent côté serveur pour SEO */}
+        {/* Header section avec H2 présent côté client */}
         <div className="flex justify-between items-start mb-4 sm:mb-8">
           <div className="flex-1">
-            {/* ✅ H2 présent dans le HTML initial - CRUCIAL pour SEO */}
+            {/* ✅ H2 toujours présent - maintenant côté client */}
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
               {getDisplayTitle()}
             </h2>
@@ -186,15 +269,22 @@ const HomeSection = async ({
           )}
         </div>
 
-        {/* Products grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-1.5">
+        {/* Products grid avec données à jour */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3">
           {products.map((product, index) => (
             <ProductCard 
-              key={product.id} 
+              key={`${product.id}-${product.updatedAt.getTime()}`} // ← Clé avec timestamp pour forcer re-render
               product={product}
               priority={index < 6}
             />
           ))}
+        </div>
+
+        {/* ✅ Indicateur de dernière mise à jour (optionnel) */}
+        <div className="mt-4 text-center">
+          <p className="text-xs text-gray-500">
+            Dernière mise à jour : {new Date().toLocaleTimeString('fr-FR')}
+          </p>
         </div>
 
       </div>
