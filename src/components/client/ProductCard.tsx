@@ -367,7 +367,7 @@ export default function ProductCard({
           )}
 
           {/* ✅ PRIX ET ÉCONOMIES AMÉLIORÉS POUR PROMOTIONS */}
-          <div className="h-12 sm:h-16 flex flex-col justify-end space-y-0.5 sm:space-y-1">
+          <div className="h-6 sm:h-10 flex flex-col justify-end space-y-0.5 sm:space-y-1">
             {/* Prix original et économies */}
             <div className="min-h-[1rem] sm:min-h-[1.25rem]">
               {product.originalPrice && isOnSale && (
