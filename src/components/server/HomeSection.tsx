@@ -187,7 +187,7 @@ const HomeSection = async ({
         </div>
 
         {/* Products grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-1.5">
           {products.map((product, index) => (
             <ProductCard 
               key={product.id} 
