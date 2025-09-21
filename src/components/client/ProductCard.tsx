@@ -27,6 +27,7 @@ interface ProductCardProps {
  * 🔧 NOUVEAU: Support complet des badges promotions
  * 💰 NOUVEAU: Affichage des économies et prix barrés
  * 🔍 SEO: Mots d'interface masqués avec aria-hidden
+ * 🛠️ FIX: Éviter les retours à la ligne pour statut et prix
  */
 export default function ProductCard({ 
   product, 
@@ -75,6 +76,34 @@ export default function ProductCard({
   };
 
   const brandDisplayName = getBrandDisplayName();
+
+  /**
+   * 🛠️ FONCTION UTILITAIRE: Raccourcir le texte du statut stock
+   */
+  const getCompactStockText = (stock: string) => {
+    const stockMappings: Record<string, { mobile: string; desktop: string }> = {
+      'En Stock': { mobile: 'Stock', desktop: 'En Stock' },
+      'Sur Commande': { mobile: 'S/Cmd', desktop: 'S/Commande' },
+      'Rupture': { mobile: 'Épuisé', desktop: 'Rupture' },
+      'Disponible': { mobile: 'Dispo', desktop: 'Disponible' },
+      'Bientôt disponible': { mobile: 'Bientôt', desktop: 'Bientôt' }
+    };
+    
+    return stockMappings[stock] || { mobile: stock.slice(0, 6), desktop: stock };
+  };
+
+  /**
+   * 🛠️ FONCTION UTILITAIRE: Formater le prix de manière compacte
+   */
+  const getCompactPrice = (price: number) => {
+    const formatted = formatPrice(price);
+    // Si le prix fait plus de 7 caractères (ex: "1 234 DH"), on le compacte
+    if (formatted.length > 7) {
+      // Enlever les espaces pour les grands nombres
+      return formatted.replace(/\s/g, '');
+    }
+    return formatted;
+  };
 
   /**
    * 📱 MOBILE: Styles de badges plus compacts
@@ -168,6 +197,10 @@ export default function ProductCard({
     e.stopPropagation();
     openCart();
   };
+
+  // 🛠️ CALCULS POUR AFFICHAGE COMPACT
+  const stockDisplayText = getCompactStockText(product.stock);
+  const compactPrice = getCompactPrice(product.price);
 
   return (
     <article className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group relative flex flex-col">
@@ -347,36 +380,40 @@ export default function ProductCard({
                       <>
                         <span className="hidden sm:inline">💰 Économisez </span>
                         <span className="sm:hidden">💰 -</span>
-                        {formatPrice(savings)}
+                        {getCompactPrice(savings)}
                       </>
                     ) : (
                       <>
                         <span className="hidden sm:inline">Économisez </span>
                         <span className="sm:hidden">-</span>
-                        {formatPrice(savings)}
+                        {getCompactPrice(savings)}
                       </>
                     )}
                   </span>
                   <span className="text-gray-400 line-through text-[10px] sm:text-sm" aria-hidden="true">
-                    {formatPrice(product.originalPrice)}
+                    {getCompactPrice(product.originalPrice)}
                   </span>
                 </div>
               )}
             </div>
             
-            {/* 📱 MOBILE: Stock et prix compactés */}
-            <div className="flex items-center justify-between">
-              {/* Statut du stock */}
-              <div className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs ${getStockStatusClasses(product.stock)}`} aria-hidden="true">
-                <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-current/60" />
-                <span>{product.stock}</span>
+            {/* 🛠️ SECTION STOCK ET PRIX OPTIMISÉE - SOLUTION PRINCIPALE */}
+            <div className="flex items-center justify-between gap-1">
+              {/* Statut du stock - COMPACT ET SANS RETOUR À LA LIGNE */}
+              <div className={`inline-flex items-center gap-0.5 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] font-medium whitespace-nowrap flex-shrink-0 ${getStockStatusClasses(product.stock)}`} aria-hidden="true">
+                <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-current/60 flex-shrink-0" />
+                <span className="leading-none">
+                  {/* Affichage responsive du statut */}
+                  <span className="sm:hidden">{stockDisplayText.mobile}</span>
+                  <span className="hidden sm:inline">{stockDisplayText.desktop}</span>
+                </span>
               </div>
               
-              {/* ✅ PRIX AMÉLIORÉ POUR PROMOTIONS */}
-              <span className={`font-bold text-sm sm:text-lg ${
+              {/* ✅ PRIX COMPACT - SANS RETOUR À LA LIGNE */}
+              <span className={`font-bold text-xs sm:text-base leading-none whitespace-nowrap flex-shrink-0 ${
                 showPromotionBadge && isOnSale ? 'text-red-600' : 'text-red-600'
               }`}>
-                {formatPrice(product.price)}
+                {compactPrice}
               </span>
             </div>
           </div>
