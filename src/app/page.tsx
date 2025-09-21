@@ -145,7 +145,7 @@ export default function HomePage() {
         <div className="max-w-[1500px] mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              BeautyDiscount, votre spécialiste beauté au Maroc
+              BeautyDiscount, Spécialiste Lissages, Kératines, Cosmétiques ...
             </h2>
           </div>
           
@@ -154,7 +154,7 @@ export default function HomePage() {
               <h3 className="font-semibold text-gray-900 mb-3">Lissages Professionnels</h3>
               <p>
                 Découvrez notre gamme complète de <strong>lissages capillaires</strong> : lissage brésilien, 
-                lissage japonais et lissage progressif. Nos <strong>traitements lissage</strong> transforment 
+                lissage au tanin et autres lissages. Nos <strong>traitements lissage</strong> transforment 
                 vos cheveux pour un résultat lisse, brillant et durable. Produits professionnels pour 
                 salon et usage domestique.
               </p>
@@ -163,9 +163,9 @@ export default function HomePage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-3">Soins Capillaires</h3>
               <p>
-                Nos <strong>masques capillaires</strong> réparateurs nourrissent en profondeur. 
+                Nos <strong>masques capillaires</strong> réparateurs nourrissent en profondeur vos cheveux. 
                 <strong>Poudres décolorantes</strong> professionnelles pour éclaircir et préparer 
-                la coloration. <strong>Kits mini lissage</strong> complets pour un traitement 
+                la coloration. <strong>Kits mini lissage</strong> complets pour un traitement lissage
                 à domicile parfait.
               </p>
             </div>
