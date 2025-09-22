@@ -137,10 +137,6 @@ webpack: (config, { dev }) => {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
           },
-          {
-          key: 'Content-Type',
-          value: 'text/css; charset=utf-8',
-        },
         ],
       },
       {
