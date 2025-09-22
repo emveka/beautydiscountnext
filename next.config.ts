@@ -42,44 +42,43 @@ const nextConfig: NextConfig = {
   },
 
   // Configuration Webpack pour minification avancée
-  webpack: (config, { dev }) => {
-    // Seulement en production
-    if (!dev) {
-      // Optimisation des chunks pour réduire la taille
-      config.optimization = {
-        ...config.optimization,
-        minimize: true, // Next.js 15 utilise SWC par défaut
-        splitChunks: {
-          chunks: 'all',
-          minSize: 20000,
-          maxSize: 200000, // Limite la taille des chunks à 200KB
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              priority: 10,
-              chunks: 'all',
-              enforce: true,
-            },
-            common: {
-              name: 'common',
-              minChunks: 2,
-              priority: 5,
-              chunks: 'all',
-              enforce: true,
-            },
+webpack: (config, { dev }) => {
+  if (!dev) {
+    config.optimization = {
+      ...config.optimization,
+      minimize: true,
+      splitChunks: {
+        chunks: 'all',
+        minSize: 20000,
+        maxSize: 200000,
+        cacheGroups: {
+          // ✅ MODIFICATION: UN SEUL CHUNK VENDOR
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors', // ← Nom fixe au lieu de généré
+            priority: 10,
+            chunks: 'all',
+            enforce: true,
+            reuseExistingChunk: true, // ← Ajout important
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            priority: 5,
+            chunks: 'all',
+            enforce: true,
           },
         },
-      };
+      },
+    };
 
-      // Optimisation pour réduire la taille du bundle
-      config.resolve.alias = {
-        ...config.resolve.alias,
-      };
-    }
+    config.resolve.alias = {
+      ...config.resolve.alias,
+    };
+  }
 
-    return config;
-  },
+  return config;
+},
 
   // Redirections pour compatibilité ou migration d'URLs
   async rewrites() {

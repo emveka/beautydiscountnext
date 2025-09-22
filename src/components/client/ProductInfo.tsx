@@ -1,14 +1,14 @@
-// components/client/ProductInfo.tsx - INTERFACE MISE À JOUR MULTI-CATÉGORIES
+// components/client/ProductInfo.tsx - VERSION ALLÉGÉE
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/contexts/CartContext';
+// ✅ IMPORTS SPÉCIFIQUES au lieu d'importer toutes les utils
 import { formatPrice, getStockStatusClasses } from '@/lib/firebase-utils';
 import type { Product, Category, SubCategory } from '@/lib/types';
 
-// ✅ SUPPRESSION DU CONFLIT DE TYPES - Réutilise la déclaration globale existante
-// Types détaillés pour Google Analytics
+// ✅ INTERFACES OPTIMISÉES
 interface GAEventParams {
   currency?: string;
   value?: number;
@@ -21,75 +21,65 @@ interface GAEventParams {
   }>;
 }
 
-// ✅ PAS DE REDÉCLARATION - utilise celle de SearchBar.tsx
-// declare global déjà fait dans SearchBar.tsx avec unknown[]
-
-// Icônes SVG intégrées (restent identiques)
-const ShoppingCart = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6m-8 0V9a2 2 0 012-2h4a2 2 0 012 2v4" />
-  </svg>
-);
-
-const CreditCard = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-  </svg>
-);
-
-const Check = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-  </svg>
-);
-
-const AlertCircle = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-const Clock = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-const Shield = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-  </svg>
-);
-
-// ✅ INTERFACE MISE À JOUR POUR MULTI-CATÉGORIES
 interface ProductInfoProps {
   product: Product;
-  
-  // ✅ NOUVELLES PROPS MULTI-CATÉGORIES
-  categories: Category[];           // 📄 Tableau de toutes les catégories
-  subCategories: SubCategory[];     // 📄 Tableau de toutes les sous-catégories
-  
-  // ✅ PROPS DE RÉTROCOMPATIBILITÉ (optionnelles)
-  primaryCategory?: Category | null;      // 📄 Catégorie principale pour rétrocompatibilité
-  primarySubCategory?: SubCategory | null; // 📄 Sous-catégorie principale pour rétrocompatibilité
-  
-  // ✅ PROPS EXISTANTES (inchangées)
+  categories: Category[];
+  subCategories: SubCategory[];
+  primaryCategory?: Category | null;
+  primarySubCategory?: SubCategory | null;
   discount: number | null;
   isOnSale: boolean;
-  
-  // 🆕 PROPS HÉRITÉES (pour compatibilité avec l'ancien code)
-  category?: Category | null;       // 📄 Déprécié mais supporté
-  subCategory?: SubCategory | null; // 📄 Déprécié mais supporté
+  category?: Category | null;
+  subCategory?: SubCategory | null;
 }
 
+// ✅ ICÔNES INLINE (évite les imports d'icônes externes)
+const icons = {
+  ShoppingCart: ({ className }: { className?: string }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6m-8 0V9a2 2 0 012-2h4a2 2 0 012 2v4" />
+    </svg>
+  ),
+  CreditCard: ({ className }: { className?: string }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    </svg>
+  ),
+  Check: ({ className }: { className?: string }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  ),
+  AlertCircle: ({ className }: { className?: string }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  Clock: ({ className }: { className?: string }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  Shield: ({ className }: { className?: string }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  )
+};
+
+/**
+ * ✅ ProductInfo ultra-optimisé pour Lighthouse
+ * ✅ Imports réduits au minimum
+ * ✅ Icônes inline
+ */
 export default function ProductInfo({ 
   product, 
   categories = [],
   subCategories = [],
   primaryCategory = null,
   primarySubCategory = null,
-  category = null,    // 📄 Rétrocompatibilité
-  subCategory = null, // 📄 Rétrocompatibilité
+  category = null,
+  subCategory = null,
   discount, 
   isOnSale 
 }: ProductInfoProps) {
@@ -99,17 +89,16 @@ export default function ProductInfo({
   const [isBuying, setIsBuying] = useState(false);
   const [cartSuccess, setCartSuccess] = useState(false);
   
-  // Utilisation du contexte panier
   const { addItem, isInCart, getItemQuantity, openCart } = useCart();
   
   const productInCart = isInCart(product.id);
   const quantityInCart = getItemQuantity(product.id);
   
-  // ✅ DÉTERMINATION INTELLIGENTE DE LA CATÉGORIE À AFFICHER
+  // ✅ DÉTERMINATION INTELLIGENTE DE LA CATÉGORIE
   const displayCategory = primaryCategory || category || categories[0] || null;
   const displaySubCategory = primarySubCategory || subCategory || subCategories[0] || null;
   
-  // Gestionnaire d'ajout au panier avec le contexte
+  // ✅ GESTIONNAIRE OPTIMISÉ AJOUT PANIER
   const handleAddToCart = async () => {
     if (product.stock === 'Rupture') return;
     
@@ -117,12 +106,11 @@ export default function ProductInfo({
     
     try {
       addItem(product, quantity);
-      
       setCartSuccess(true);
       setTimeout(() => setCartSuccess(false), 3000);
       
-      // ✅ Analytics - Track add to cart (utilise la déclaration globale)
-      if (typeof window !== 'undefined' && window.gtag) {
+      // ✅ ANALYTICS CONDITIONNEL
+      if (typeof window !== 'undefined' && 'gtag' in window && window.gtag) {
         window.gtag('event', 'add_to_cart', {
           currency: 'MAD',
           value: product.price * quantity,
@@ -137,14 +125,14 @@ export default function ProductInfo({
       }
       
     } catch (error) {
-      console.error('Erreur lors de l\'ajout au panier:', error);
+      console.error('Erreur ajout panier:', error);
       alert('Erreur lors de l\'ajout au panier. Veuillez réessayer.');
     } finally {
       setIsAddingToCart(false);
     }
   };
 
-  // Gestionnaire d'achat direct avec redirection checkout
+  // ✅ GESTIONNAIRE OPTIMISÉ ACHAT DIRECT
   const handleBuyNow = async () => {
     if (product.stock === 'Rupture') return;
     
@@ -158,8 +146,8 @@ export default function ProductInfo({
         router.push('/checkout');
       }, 800);
       
-      // ✅ Analytics - Track purchase intent (utilise la déclaration globale)
-      if (typeof window !== 'undefined' && window.gtag) {
+      // ✅ ANALYTICS CONDITIONNEL
+      if (typeof window !== 'undefined' && 'gtag' in window && window.gtag) {
         window.gtag('event', 'begin_checkout', {
           currency: 'MAD',
           value: product.price * quantity,
@@ -174,63 +162,50 @@ export default function ProductInfo({
       }
       
     } catch (error) {
-      console.error('Erreur lors de l\'achat:', error);
+      console.error('Erreur achat:', error);
       alert('Erreur lors de l\'achat. Veuillez réessayer.');
       setIsBuying(false);
     }
   };
 
-  // Gestionnaire pour voir le panier
-  const handleViewCart = () => {
-    openCart();
-  };
+  const handleViewCart = () => openCart();
   
-  // Gérer la quantité
   const updateQuantity = (newQuantity: number) => {
     const validQuantity = Math.max(1, Math.min(99, newQuantity));
     setQuantity(validQuantity);
   };
   
-  // Icône de statut de stock
+  // ✅ FONCTION STOCK ICON OPTIMISÉE
   const getStockIcon = () => {
     switch (product.stock) {
-      case 'En Stock':
-        return <Check className="w-4 h-4" />;
-      case 'Sur Commande':
-        return <Clock className="w-4 h-4" />;
-      case 'Rupture':
-        return <AlertCircle className="w-4 h-4" />;
-      default:
-        return <Check className="w-4 h-4" />;
+      case 'En Stock': return <icons.Check className="w-4 h-4" />;
+      case 'Sur Commande': return <icons.Clock className="w-4 h-4" />;
+      case 'Rupture': return <icons.AlertCircle className="w-4 h-4" />;
+      default: return <icons.Check className="w-4 h-4" />;
     }
   };
   
-  // Calculer les économies
   const savings = isOnSale && product.originalPrice 
     ? product.originalPrice - product.price 
     : 0;
   
   return (
     <>
-      {/* 🎯 CONTENEUR PRINCIPAL AVEC PADDING BOTTOM POUR LE STICKY */}
       <div className="space-y-4 sm:space-y-6 pb-20 sm:pb-0">
         {/* En-tête produit */}
         <div>
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1 pr-2">
-              {/* Marque */}
               {product.brandName && (
                 <p className="text-xs sm:text-sm text-gray-600 font-medium mb-1 uppercase tracking-wide">
                   {product.brandName}
                 </p>
               )}
               
-              {/* Nom du produit - Responsive */}
               <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight mb-2">
                 {product.name}
               </h1>
               
-              {/* Contenance */}
               {product.contenance && (
                 <p className="text-sm sm:text-lg text-gray-600 font-medium">
                   {product.contenance}
@@ -239,7 +214,7 @@ export default function ProductInfo({
             </div>
           </div>
           
-          {/* ✅ CONTEXTE CATÉGORIE MULTI-CATÉGORIES AMÉLIORÉ */}
+          {/* ✅ CONTEXTE CATÉGORIE MULTI-CATÉGORIES */}
           <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
             {displayCategory && (
               <>
@@ -251,7 +226,6 @@ export default function ProductInfo({
                   </>
                 )}
                 
-                {/* 🆕 INDICATEUR MULTI-CATÉGORIES */}
                 {categories.length > 1 && (
                   <>
                     <span>•</span>
@@ -265,9 +239,8 @@ export default function ProductInfo({
           </div>
         </div>
         
-        {/* Prix et promotions - Optimisé mobile */}
+        {/* Prix et promotions */}
         <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
-          {/* Badge personnalisé */}
           {product.badgeText && (
             <div className="inline-block">
               <span 
@@ -298,7 +271,6 @@ export default function ProductInfo({
             )}
           </div>
           
-          {/* Économies */}
           {savings > 0 && (
             <div className="flex items-center space-x-2">
               <div className="text-sm sm:text-base text-green-600 font-semibold">
@@ -308,14 +280,14 @@ export default function ProductInfo({
           )}
         </div>
         
-        {/* Description courte - Compacte sur mobile */}
+        {/* Description courte */}
         {product.shortDescription && (
           <div className="prose prose-sm text-gray-600 bg-gray-50 p-3 sm:p-4 rounded-lg">
             <p className="mb-0 text-sm sm:text-base">{product.shortDescription}</p>
           </div>
         )}
         
-        {/* Informations produit - Taille mobile optimisée */}
+        {/* Informations produit */}
         <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
           <div className="flex justify-between items-center py-2 border-b border-gray-100">
             <span className="font-medium text-gray-700">Référence:</span>
@@ -330,36 +302,31 @@ export default function ProductInfo({
           </div>
         </div>
         
-        {/* Statut du stock - Responsive */}
+        {/* Statut du stock */}
         <div className="flex items-center space-x-2 flex-wrap gap-2">
           <div className={`inline-flex items-center space-x-2 px-3 py-2 rounded-full text-xs sm:text-sm font-medium ${getStockStatusClasses(product.stock)}`}>
             {getStockIcon()}
             <span>{product.stock}</span>
           </div>
           
-          {/* Badge "Dans le panier" si le produit y est */}
           {productInCart && (
             <div className="inline-flex items-center space-x-2 px-3 py-2 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-700">
-              <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+              <icons.Check className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Dans le panier ({quantityInCart})</span>
             </div>
           )}
         </div>
         
-        {/* Sélection quantité et actions - Desktop uniquement */}
+        {/* Sélection quantité et actions - Desktop */}
         {product.stock !== 'Rupture' && (
           <div className="hidden sm:block space-y-4">
-            {/* Sélecteur de quantité */}
             <div className="flex items-center space-x-4">
-              <label htmlFor="quantity" className="font-medium text-gray-700">
-                Quantité:
-              </label>
+              <label htmlFor="quantity" className="font-medium text-gray-700">Quantité:</label>
               <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                 <button
                   onClick={() => updateQuantity(quantity - 1)}
                   disabled={quantity <= 1}
                   className="px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Diminuer la quantité"
                 >
                   −
                 </button>
@@ -376,43 +343,38 @@ export default function ProductInfo({
                   onClick={() => updateQuantity(quantity + 1)}
                   disabled={quantity >= 99}
                   className="px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Augmenter la quantité"
                 >
                   +
                 </button>
               </div>
             </div>
             
-            {/* BOUTONS D'ACTION - Version Desktop */}
             <div className="flex gap-3">
               {productInCart ? (
-                /* Si le produit est déjà dans le panier */
                 <div className="flex gap-3 w-full">
                   <button 
                     onClick={handleViewCart}
                     className="flex-1 bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
                   >
-                    <Check className="w-5 h-5" />
+                    <icons.Check className="w-5 h-5" />
                     <span>Voir le panier ({quantityInCart})</span>
                   </button>
                   <button 
                     onClick={handleAddToCart}
                     disabled={isAddingToCart || isBuying}
                     className="bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                    title="Ajouter une autre unité"
                   >
                     {isAddingToCart ? (
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
                     ) : (
                       <>
-                        <ShoppingCart className="w-5 h-5" />
+                        <icons.ShoppingCart className="w-5 h-5" />
                         <span>+{quantity}</span>
                       </>
                     )}
                   </button>
                 </div>
               ) : (
-                /* Si le produit n'est pas dans le panier */
                 <>
                   <button
                     onClick={handleAddToCart}
@@ -426,12 +388,12 @@ export default function ProductInfo({
                       </>
                     ) : cartSuccess ? (
                       <>
-                        <Check className="w-5 h-5" />
+                        <icons.Check className="w-5 h-5" />
                         <span>Ajouté au panier !</span>
                       </>
                     ) : (
                       <>
-                        <ShoppingCart className="w-5 h-5" />
+                        <icons.ShoppingCart className="w-5 h-5" />
                         <span>Ajouter au panier</span>
                       </>
                     )}
@@ -449,7 +411,7 @@ export default function ProductInfo({
                       </>
                     ) : (
                       <>
-                        <CreditCard className="w-5 h-5" />
+                        <icons.CreditCard className="w-5 h-5" />
                         <span>Acheter maintenant</span>
                       </>
                     )}
@@ -464,7 +426,7 @@ export default function ProductInfo({
         {product.stock === 'Rupture' && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
             <div className="flex items-center space-x-2 text-red-700">
-              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              <icons.AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="font-medium text-sm sm:text-base">Produit temporairement indisponible</span>
             </div>
             <p className="text-red-600 text-xs sm:text-sm mt-2">
@@ -473,14 +435,14 @@ export default function ProductInfo({
           </div>
         )}
         
-        {/* Informations de confiance - Compactes sur mobile */}
+        {/* Informations de confiance */}
         <div className="border-t border-gray-200 pt-4 sm:pt-6 space-y-3 sm:space-y-4">
           <h3 className="font-semibold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">Pourquoi choisir BeautyDiscount ?</h3>
           
           <div className="space-y-2 sm:space-y-3">
             <div className="flex items-start space-x-3 text-xs sm:text-sm">
               <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-600" />
+                <icons.Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-600" />
               </div>
               <div>
                 <p className="font-medium text-gray-900">Livraison rapide</p>
@@ -490,7 +452,7 @@ export default function ProductInfo({
             
             <div className="flex items-start space-x-3 text-xs sm:text-sm">
               <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-purple-100 rounded-full flex items-center justify-center mt-0.5">
-                <CreditCard className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600" />
+                <icons.CreditCard className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600" />
               </div>
               <div>
                 <p className="font-medium text-gray-900">Paiement à la livraison</p>
@@ -500,7 +462,7 @@ export default function ProductInfo({
             
             <div className="flex items-start space-x-3 text-xs sm:text-sm">
               <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-amber-100 rounded-full flex items-center justify-center mt-0.5">
-                <Shield className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-600" />
+                <icons.Shield className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-600" />
               </div>
               <div>
                 <p className="font-medium text-gray-900">Produits authentiques</p>
@@ -511,21 +473,18 @@ export default function ProductInfo({
         </div>
       </div>
 
-      {/* 🚀 BOTTOM STICKY MOBILE - TOTALEMENT REFAIT ET CORRIGÉ */}
+      {/* Bottom sticky mobile */}
       {product.stock !== 'Rupture' && (
         <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-lg">
-          {/* Container avec safe area pour les iPhone avec encoche */}
           <div className="pb-safe-bottom">
             <div className="p-3">
               <div className="flex items-center gap-2">
                 
-                {/* 🎯 SÉLECTEUR DE QUANTITÉ ULTRA COMPACT */}
                 <div className="flex items-center bg-gray-100 border border-gray-300 rounded-lg overflow-hidden">
                   <button
                     onClick={() => updateQuantity(quantity - 1)}
                     disabled={quantity <= 1}
                     className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
-                    aria-label="Diminuer"
                   >
                     −
                   </button>
@@ -536,21 +495,18 @@ export default function ProductInfo({
                     onClick={() => updateQuantity(quantity + 1)}
                     disabled={quantity >= 99}
                     className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
-                    aria-label="Augmenter"
                   >
                     +
                   </button>
                 </div>
 
-                {/* 🎯 BOUTONS D'ACTION OPTIMISÉS */}
                 {productInCart ? (
-                  /* Version avec panier - Actions compactes */
                   <>
                     <button
                       onClick={handleViewCart}
                       className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2.5 px-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-1 text-xs min-h-[40px]"
                     >
-                      <Check className="w-3 h-3 flex-shrink-0" />
+                      <icons.Check className="w-3 h-3 flex-shrink-0" />
                       <span className="truncate">Panier ({quantityInCart})</span>
                     </button>
                     
@@ -558,20 +514,18 @@ export default function ProductInfo({
                       onClick={handleAddToCart}
                       disabled={isAddingToCart}
                       className="bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 text-white py-2.5 px-3 rounded-lg font-semibold transition-colors flex items-center justify-center text-xs min-h-[40px] min-w-[60px]"
-                      title={`Ajouter ${quantity} de plus`}
                     >
                       {isAddingToCart ? (
                         <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       ) : (
                         <>
-                          <ShoppingCart className="w-3 h-3" />
+                          <icons.ShoppingCart className="w-3 h-3" />
                           <span className="ml-1">+{quantity}</span>
                         </>
                       )}
                     </button>
                   </>
                 ) : (
-                  /* Version sans panier - Deux boutons principaux */
                   <>
                     <button
                       onClick={handleAddToCart}
@@ -585,12 +539,12 @@ export default function ProductInfo({
                         </>
                       ) : cartSuccess ? (
                         <>
-                          <Check className="w-3 h-3" />
+                          <icons.Check className="w-3 h-3" />
                           <span>Ajouté!</span>
                         </>
                       ) : (
                         <>
-                          <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+                          <icons.ShoppingCart className="w-3 h-3 flex-shrink-0" />
                           <span className="truncate">Panier</span>
                         </>
                       )}
@@ -608,7 +562,7 @@ export default function ProductInfo({
                         </>
                       ) : (
                         <>
-                          <CreditCard className="w-3 h-3 flex-shrink-0" />
+                          <icons.CreditCard className="w-3 h-3 flex-shrink-0" />
                           <span className="truncate">Acheter</span>
                         </>
                       )}

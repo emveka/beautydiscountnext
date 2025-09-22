@@ -13,11 +13,17 @@ import Footer from '@/components/Footer';
 // Import du wrapper client au lieu du provider direct
 import CartProviderWrapper from '@/components/providers/CartProviderWrapper';
 
-// Configuration de la police Google Fonts
+// ✅ OPTIMISATION GOOGLE TAG MANAGER
+import GoogleTagManagerOptimized from '@/components/GoogleTagManagerOptimized';
+
+// Configuration de la police Google Fonts OPTIMISÉE
 const inter = Inter({ 
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter'
+  variable: '--font-inter',
+  // ✅ OPTIMISATION FONT
+  preload: true,
+  fallback: ['system-ui', 'arial']
 });
 
 /**
@@ -25,7 +31,7 @@ const inter = Inter({
  * Optimisation SEO et réseaux sociaux
  */
 export const metadata: Metadata = {
-  // ✅ AJOUT : Configuration de base pour les URLs
+  // ✅ Configuration de base pour les URLs
   metadataBase: new URL('https://beautydiscount.ma'),
   
   title: {
@@ -51,7 +57,7 @@ export const metadata: Metadata = {
   creator: 'BeautyDiscount',
   publisher: 'BeautyDiscount',
   
-  // ✅ AJOUT : URL canonique par défaut
+  // ✅ URL canonique par défaut
   alternates: {
     canonical: '/'
   },
@@ -126,20 +132,22 @@ interface RootLayoutProps {
 
 /**
  * RootLayout - Layout principal de l'application
- * Version corrigée avec canonical tag
+ * Version optimisée pour performance Lighthouse
  */
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="fr" className={`${inter.variable} scroll-smooth`}>
       <head>
-        {/* Preload des ressources critiques */}
-        <link rel="preload" href="/logos.png" as="image" />
+        {/* ✅ PRELOAD DES RESSOURCES CRITIQUES OPTIMISÉ */}
+        <link rel="preload" href="/logos.png" as="image" type="image/png" />
+        <link rel="preload" href={inter.style.fontFamily} as="font" type="font/woff2" crossOrigin="anonymous" />
         
-        {/* DNS Prefetch pour les domaines externes */}
+        {/* ✅ DNS PREFETCH OPTIMISÉ */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="//www.google-analytics.com" />
+        <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link rel="preconnect" href="//fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* Structured Data - Organisation */}
+        {/* ✅ STRUCTURED DATA OPTIMISÉ */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -211,51 +219,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
           </div>
         </CartProviderWrapper>
 
-        {/* Scripts d'analytics et de performance */}
-        {process.env.NODE_ENV === 'production' && (
-          <>
-            {/* Google Analytics */}
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-            />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
-                    page_title: document.title,
-                    page_location: window.location.href,
-                  });
-                `,
-              }}
-            />
-            
-            {/* Facebook Pixel (optionnel) */}
-            {process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID && (
-              <script
-                dangerouslySetInnerHTML={{
-                  __html: `
-                    !function(f,b,e,v,n,t,s)
-                    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                    n.queue=[];t=b.createElement(e);t.async=!0;
-                    t.src=v;s=b.getElementsByTagName(e)[0];
-                    s.parentNode.insertBefore(t,s)}(window, document,'script',
-                    'https://connect.facebook.net/en_US/fbevents.js');
-                    fbq('init', '${process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID}');
-                    fbq('track', 'PageView');
-                  `,
-                }}
-              />
-            )}
-          </>
+        {/* ✅ GOOGLE TAG MANAGER OPTIMISÉ */}
+        {process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleTagManagerOptimized gtmId={process.env.NEXT_PUBLIC_GA_ID} />
         )}
-        <Analytics/>
-        <SpeedInsights/>
+
+        {/* ✅ VERCEL ANALYTICS OPTIMISÉ */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
