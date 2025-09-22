@@ -140,7 +140,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <head>
         {/* ✅ PRELOAD DES RESSOURCES CRITIQUES OPTIMISÉ */}
         <link rel="preload" href="/logos.png" as="image" type="image/png" />
-        <link rel="preload" href={inter.style.fontFamily} as="font" type="font/woff2" crossOrigin="anonymous" />
         
         {/* ✅ DNS PREFETCH OPTIMISÉ */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
