@@ -1,2 +1,13 @@
 @import "tailwindcss";
 
+/* RelatedProducts */
+/* Styles en ligne pour masquer la scrollbar */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

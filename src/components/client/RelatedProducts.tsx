@@ -248,16 +248,6 @@ export default function RelatedProducts({
         </div>
       )}
       
-      {/* Styles en ligne pour masquer la scrollbar */}
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 }
