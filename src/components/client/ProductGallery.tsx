@@ -34,119 +34,91 @@ interface ProductGalleryProps {
   imagePaths: string[];
   productName: string;
   priority?: boolean;
+  /** Change cette valeur lorsque le produit est modifié (ex: updatedAt.getTime()). */
+  cacheKey?: string | number;
 }
 
-/**
- * Fonction pour créer une URL de placeholder
- */
+/** Placeholder local pour éviter les 404 et garder un layout stable */
 function createPlaceholderUrl(width: number = 600, height: number = 600): string {
   return `/api/placeholder/${width}/${height}`;
 }
 
 /**
- * Fonction pour traiter les URLs d'images Firebase
- * PRIORITÉ : URLs complètes Firebase > Autres URLs > Chemins relatifs > Placeholder
+ * Traite les URLs d'images avec priorité:
+ * 1) URLs Firebase complètes
+ * 2) Autres URLs absolues
+ * 3) Chemins relatifs (imagePaths)
+ * + cache-busting via ?v=cacheKey
  */
-function processFirebaseImages(images: string[], imagePaths: string[]): string[] {
-  const processedImages: string[] = [];
-  
-  // 1. PRIORITÉ ABSOLUE : URLs complètes Firebase Storage
-  images.forEach(imageUrl => {
-    if (imageUrl && 
-        typeof imageUrl === 'string' && 
-        imageUrl.trim() && 
-        imageUrl.startsWith('https://firebasestorage.googleapis.com')) {
-      processedImages.push(imageUrl.trim());
+function processFirebaseImages(
+  images: string[],
+  imagePaths: string[],
+  cacheKey?: string | number
+): string[] {
+  const addVersion = (url: string) => {
+    if (!cacheKey) return url;
+    return url.includes('?') ? `${url}&v=${cacheKey}` : `${url}?v=${cacheKey}`;
+  };
+
+  const processed: string[] = [];
+
+  // 1) URLs Firebase complètes (priorité absolue)
+  images.forEach((url) => {
+    if (url?.trim()?.startsWith('https://firebasestorage.googleapis.com')) {
+      processed.push(addVersion(url.trim()));
     }
   });
-  
-  // 2. Si pas assez d'URLs complètes Firebase, ajouter les autres URLs complètes
-  images.forEach(imageUrl => {
-    if (imageUrl && 
-        typeof imageUrl === 'string' && 
-        imageUrl.trim() && 
-        (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) &&
-        !imageUrl.startsWith('https://firebasestorage.googleapis.com') &&
-        !processedImages.includes(imageUrl.trim())) {
-      processedImages.push(imageUrl.trim());
+
+  // 2) Autres URLs absolues
+  images.forEach((url) => {
+    if (url && /^https?:\/\//.test(url) && !url.startsWith('https://firebasestorage.googleapis.com')) {
+      const clean = url.trim();
+      if (!processed.includes(clean)) processed.push(addVersion(clean));
     }
   });
-  
-  // 3. En dernier recours : utiliser imagePaths si pas d'URLs complètes
-  if (processedImages.length === 0) {
-    imagePaths.forEach(imagePath => {
-      if (imagePath && 
-          typeof imagePath === 'string' && 
-          imagePath.trim()) {
-        const cleanPath = imagePath.trim();
-        // Ajouter le slash au début si nécessaire
-        const fullPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
-        processedImages.push(fullPath);
+
+  // 3) Fallback: imagePaths
+  if (processed.length === 0) {
+    imagePaths.forEach((p) => {
+      if (p?.trim()) {
+        const fullPath = p.startsWith('/') ? p : `/${p}`;
+        processed.push(addVersion(fullPath));
       }
     });
   }
-  
-  // 4. Si aucune image valide, retourner placeholder
-  if (processedImages.length === 0) {
-    processedImages.push(createPlaceholderUrl());
-  }
-  
-  // Supprimer les doublons
-  return [...new Set(processedImages)];
+
+  return processed.length ? [...new Set(processed)] : [createPlaceholderUrl()];
 }
 
 /**
- * Composant ProductGallery - Version OPTIMISÉE pour PageSpeed
- * 
- * Fonctionnalités :
- * - Priorité aux URLs complètes Firebase Storage
- * - Navigation avec flèches gauche/droite
- * - Miniatures cliquables en bas
- * - Modal zoom en plein écran
- * - Responsive mobile/desktop
- * - Gestion d'erreurs robuste
- * - Optimisations PageSpeed avec Next.js Image
+ * ProductGallery optimisée
  */
-export default function ProductGallery({ 
-  images, 
-  imagePaths, 
-  productName, 
-  priority = false 
+export default function ProductGallery({
+  images,
+  imagePaths,
+  productName,
+  priority = false,
+  cacheKey, // ✅ on récupère la prop
 }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
-  
-  // Traitement intelligent des images Firebase
-  const displayImages = processFirebaseImages(images || [], imagePaths || []);
-  
-  // Navigation vers l'image suivante
-  const nextImage = () => {
-    setActiveIndex((prev) => (prev + 1) % displayImages.length);
-  };
-  
-  // Navigation vers l'image précédente
-  const prevImage = () => {
-    setActiveIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length);
-  };
-  
-  // Aller directement à une image
-  const goToImage = (index: number) => {
-    setActiveIndex(index);
-  };
-  
-  // Gérer les touches clavier dans le modal
+
+  // ✅ on passe cacheKey à la fonction de traitement
+  const displayImages = processFirebaseImages(images || [], imagePaths || [], cacheKey);
+
+  const nextImage = () => setActiveIndex((prev) => (prev + 1) % displayImages.length);
+  const prevImage = () => setActiveIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length);
+  const goToImage = (index: number) => setActiveIndex(index);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      setIsZoomed(false);
-    } else if (e.key === 'ArrowLeft') {
-      prevImage();
-    } else if (e.key === 'ArrowRight') {
-      nextImage();
-    }
+    if (e.key === 'Escape') setIsZoomed(false);
+    else if (e.key === 'ArrowLeft') prevImage();
+    else if (e.key === 'ArrowRight') nextImage();
   };
-  
+
   const currentImage = displayImages[activeIndex];
-  
+  const isFirebaseUrl = currentImage?.startsWith('https://firebasestorage.googleapis.com');
+
   return (
     <div className="space-y-4">
       {/* Image principale */}
@@ -160,9 +132,11 @@ export default function ProductGallery({
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
           placeholder="blur"
+          // Pour éviter l'optimiseur d'images de Vercel sur Firebase (réduit l'effet de cache)
+          unoptimized={isFirebaseUrl}
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         />
-        
+
         {/* Bouton zoom */}
         <button
           onClick={() => setIsZoomed(true)}
@@ -171,7 +145,7 @@ export default function ProductGallery({
         >
           <ZoomIn className="w-5 h-5 text-gray-700" />
         </button>
-        
+
         {/* Navigation si plusieurs images */}
         {displayImages.length > 1 && (
           <>
@@ -182,7 +156,7 @@ export default function ProductGallery({
             >
               <ChevronLeft className="w-5 h-5 text-gray-700" />
             </button>
-            
+
             <button
               onClick={nextImage}
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white p-2 rounded-full shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100"
@@ -192,15 +166,15 @@ export default function ProductGallery({
             </button>
           </>
         )}
-        
-        {/* Indicateur nombre d'images */}
+
+        {/* Indicateur nombre d’images */}
         {displayImages.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium">
             {activeIndex + 1} / {displayImages.length}
           </div>
         )}
       </div>
-      
+
       {/* Miniatures */}
       {displayImages.length > 1 && (
         <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -209,9 +183,7 @@ export default function ProductGallery({
               key={index}
               onClick={() => goToImage(index)}
               className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                index === activeIndex 
-                  ? 'border-rose-500 ring-2 ring-rose-200' 
-                  : 'border-gray-200 hover:border-gray-300'
+                index === activeIndex ? 'border-rose-500 ring-2 ring-rose-200' : 'border-gray-200 hover:border-gray-300'
               }`}
               aria-label={`Voir l'image ${index + 1}`}
             >
@@ -224,17 +196,18 @@ export default function ProductGallery({
                 className="w-full h-full object-cover"
                 loading="lazy"
                 placeholder="blur"
+                unoptimized={image.startsWith('https://firebasestorage.googleapis.com')}
                 blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
               />
             </button>
           ))}
         </div>
       )}
-      
+
       {/* Modal zoom */}
       {isZoomed && (
-        <div 
-          className="fixed inset-0  z-50 flex items-center justify-center p-4"
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={() => setIsZoomed(false)}
           onKeyDown={handleKeyDown}
           tabIndex={0}
@@ -251,10 +224,11 @@ export default function ProductGallery({
               quality={90}
               className="max-w-full max-h-full object-contain"
               priority
+              unoptimized={isFirebaseUrl}
               placeholder="blur"
               blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />
-            
+
             {/* Bouton fermer */}
             <button
               onClick={() => setIsZoomed(false)}
@@ -263,7 +237,7 @@ export default function ProductGallery({
             >
               <X className="w-6 h-6" />
             </button>
-            
+
             {/* Navigation dans le modal */}
             {displayImages.length > 1 && (
               <>
@@ -277,7 +251,7 @@ export default function ProductGallery({
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
-                
+
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -288,7 +262,7 @@ export default function ProductGallery({
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>
-                
+
                 {/* Indicateur dans le modal */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium">
                   {activeIndex + 1} / {displayImages.length}
