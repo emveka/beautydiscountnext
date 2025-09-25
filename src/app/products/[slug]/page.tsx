@@ -82,6 +82,8 @@ function toCacheKey(input: unknown): number {
   return Date.now();
 }
 
+export const revalidate = 0;
+
 /**
  * Page produit détaillée - Server Component OPTIMISÉ MULTI-CATÉGORIES
  *
