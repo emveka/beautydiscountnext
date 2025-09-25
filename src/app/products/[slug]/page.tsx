@@ -101,7 +101,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <div className="min-h-screen bg-white">
         {/* 🎯 BREADCRUMB - Multi-catégories optimisé */}
         <section className="bg-white border-b border-gray-200">
-          <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-4">
+          <div className="w-full max-w-[1500px] mx-auto px-3 sm:px-4 py-2 sm:py-4">
             <BreadcrumbNav items={breadcrumbItems} />
           </div>
         </section>

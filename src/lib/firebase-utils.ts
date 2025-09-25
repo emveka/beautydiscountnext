@@ -1171,31 +1171,107 @@ export function isProductOnSale(product: Product): boolean {
   return !!(product.originalPrice && product.originalPrice > product.price);
 }
 
-// ===== FONCTIONS DE GESTION D'IMAGES SIMPLIFIÉES =====
+// ===== FONCTION GETPRODUCTIMAGEURL CORRIGÉE AVEC CACHE-BUSTING =====
 
-export function getProductImageUrl(product: Product): string {
+/**
+ * ✅ FONCTION CORRIGÉE - Obtient l'URL de l'image principale d'un produit avec cache-busting
+ */
+export function getProductImageUrl(product: Product, addCacheBusting: boolean = false): string {
   const allImages = [...(product.images || []), ...(product.imagePaths || [])];
+  
+  console.log('🖼️ getProductImageUrl appelée:', {
+    productId: product.id,
+    productName: product.name,
+    imagesCount: product.images?.length || 0,
+    imagePathsCount: product.imagePaths?.length || 0,
+    addCacheBusting
+  });
   
   for (const imageUrl of allImages) {
     if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim()) {
       const cleanUrl = imageUrl.trim();
       
+      // URLs complètes (Firebase Storage en priorité)
+      if (cleanUrl.startsWith('https://firebasestorage.googleapis.com')) {
+        let finalUrl = cleanUrl;
+        
+        // ✅ AJOUT CACHE-BUSTING POUR FIREBASE STORAGE
+        if (addCacheBusting) {
+          try {
+            const url = new URL(cleanUrl);
+            url.searchParams.set('cb', Date.now().toString());
+            finalUrl = url.toString();
+          } catch (error) {
+            console.warn('Erreur ajout cache-busting:', error);
+          }
+        }
+        
+        console.log('✅ URL Firebase Storage trouvée:', {
+          original: cleanUrl.substring(0, 100) + '...',
+          final: finalUrl.substring(0, 100) + '...'
+        });
+        
+        return finalUrl;
+      }
+      
       if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
-        return cleanUrl;
+        let finalUrl = cleanUrl;
+        
+        // ✅ AJOUT CACHE-BUSTING POUR AUTRES URLs
+        if (addCacheBusting) {
+          try {
+            const url = new URL(cleanUrl);
+            url.searchParams.set('cb', Date.now().toString());
+            finalUrl = url.toString();
+          } catch (error) {
+            console.warn('Erreur ajout cache-busting:', error);
+          }
+        }
+        
+        console.log('🌐 Autre URL complète trouvée:', finalUrl);
+        return finalUrl;
       }
       
+      // Chemins relatifs
       if (cleanUrl.startsWith('/')) {
-        return cleanUrl;
+        const finalUrl = addCacheBusting 
+          ? `${cleanUrl}?cb=${Date.now()}`
+          : cleanUrl;
+        
+        console.log('📁 Chemin relatif trouvé:', finalUrl);
+        return finalUrl;
       }
       
-      return `/${cleanUrl}`;
+      // Chemin sans slash initial
+      const finalUrl = addCacheBusting 
+        ? `/${cleanUrl}?cb=${Date.now()}`
+        : `/${cleanUrl}`;
+        
+      console.log('📂 Chemin converti:', finalUrl);
+      return finalUrl;
     }
   }
   
-  return '/images/placeholder-300x300.png';
+  // Image par défaut avec cache-busting
+  const placeholderUrl = addCacheBusting 
+    ? `/images/placeholder-300x300.png?cb=${Date.now()}`
+    : '/images/placeholder-300x300.png';
+    
+  console.log('❌ Aucune image valide, placeholder utilisé:', placeholderUrl);
+  return placeholderUrl;
 }
 
-export function isValidImageUrl(imageUrl: string): boolean {
+/**
+ * ✅ NOUVELLE FONCTION - Obtenir l'URL d'image avec cache-busting automatique
+ */
+export function getProductImageUrlWithCacheBusting(product: Product): string {
+  return getProductImageUrl(product, true);
+}
+
+/**
+ * ✅ FONCTION CORRIGÉE - Vérifier si une URL d'image est valide avec gestion du cache
+ */
+export function isValidImageUrl(imageUrl: string, bypassCache: boolean = false): boolean {
   if (!imageUrl || typeof imageUrl !== 'string') {
     return false;
   }
@@ -1206,15 +1282,17 @@ export function isValidImageUrl(imageUrl: string): boolean {
     return false;
   }
   
+  // Extensions valides
   const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg'];
   const hasValidExtension = validExtensions.some(ext => 
     cleanUrl.toLowerCase().includes(ext)
   );
   
-  if (!hasValidExtension) {
+  if (!hasValidExtension && !bypassCache) {
     return false;
   }
   
+  // URLs complètes
   if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
     try {
       new URL(cleanUrl);
@@ -1224,6 +1302,7 @@ export function isValidImageUrl(imageUrl: string): boolean {
     }
   }
   
+  // Chemins relatifs
   if (cleanUrl.startsWith('/')) {
     return true;
   }
@@ -1231,26 +1310,135 @@ export function isValidImageUrl(imageUrl: string): boolean {
   return true;
 }
 
-export function normalizeImageUrl(imageUrl: string): string {
+/**
+ * ✅ FONCTION CORRIGÉE - Normaliser l'URL d'image avec cache-busting optionnel
+ */
+export function normalizeImageUrl(imageUrl: string, addCacheBusting: boolean = false): string {
   if (!imageUrl || typeof imageUrl !== 'string') {
-    return '/api/placeholder/300/300';
+    const placeholder = addCacheBusting 
+      ? `/api/placeholder/300/300?cb=${Date.now()}`
+      : '/api/placeholder/300/300';
+    return placeholder;
   }
   
   const cleanUrl = imageUrl.trim();
   
   if (!cleanUrl) {
-    return '/api/placeholder/300/300';
+    const placeholder = addCacheBusting 
+      ? `/api/placeholder/300/300?cb=${Date.now()}`
+      : '/api/placeholder/300/300';
+    return placeholder;
   }
   
+  // URLs complètes avec cache-busting
   if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+    if (addCacheBusting) {
+      try {
+        const url = new URL(cleanUrl);
+        url.searchParams.set('cb', Date.now().toString());
+        return url.toString();
+      } catch {
+        return cleanUrl;
+      }
+    }
     return cleanUrl;
   }
   
+  // Chemins relatifs
   if (cleanUrl.startsWith('/')) {
-    return cleanUrl;
+    return addCacheBusting 
+      ? `${cleanUrl}?cb=${Date.now()}`
+      : cleanUrl;
   }
   
-  return `/${cleanUrl}`;
+  // Ajouter slash initial
+  return addCacheBusting 
+    ? `/${cleanUrl}?cb=${Date.now()}`
+    : `/${cleanUrl}`;
+}
+
+/**
+ * ✅ NOUVELLE FONCTION - Forcer le rechargement d'image en vidant le cache
+ */
+export function forceImageReload(imageUrl: string): string {
+  if (!imageUrl) return imageUrl;
+  
+  try {
+    const url = new URL(imageUrl);
+    
+    // Supprimer les anciens paramètres de cache
+    url.searchParams.delete('cb');
+    url.searchParams.delete('t');
+    url.searchParams.delete('cache');
+    
+    // Ajouter nouveau timestamp
+    url.searchParams.set('cb', Date.now().toString());
+    
+    return url.toString();
+  } catch {
+    // Si ce n'est pas une URL valide, ajouter timestamp simple
+    const separator = imageUrl.includes('?') ? '&' : '?';
+    return `${imageUrl}${separator}cb=${Date.now()}`;
+  }
+}
+
+export function processProductImages(product: Product, forceCacheBusting: boolean = false): {
+  processedImages: string[];
+  processedImagePaths: string[];
+  primaryImage: string;
+} {
+  const processedImages: string[] = [];
+  
+  console.log('🔄 Traitement images produit (SOLUTION DEFINITIVE):', {
+    productId: product.id,
+    productName: product.name,
+    forceCacheBusting,
+    originalImagesCount: product.images?.length || 0,
+    // ❌ On ignore délibérément les imagePaths
+    imagePathsIgnored: product.imagePaths?.length || 0
+  });
+  
+  // ✅ TRAITER UNIQUEMENT LES URLs Firebase Storage (images)
+  (product.images || []).forEach((imageUrl, index) => {
+    if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim()) {
+      const processedUrl = forceCacheBusting 
+        ? forceImageReload(imageUrl.trim())
+        : imageUrl.trim();
+      processedImages.push(processedUrl);
+      
+      console.log(`✅ Image Firebase ${index} traitée:`, {
+        original: imageUrl.substring(0, 60) + '...',
+        processed: processedUrl.substring(0, 60) + '...',
+        hasCacheBusting: processedUrl.includes('cb=')
+      });
+    }
+  });
+  
+  // ❌ IGNORER COMPLÈTEMENT les imagePaths qui causent les conflits
+  const processedImagePaths: string[] = []; // VIDE !
+  
+  // Image principale = première URL Firebase ou placeholder
+  const primaryImage = processedImages[0] || 
+    (forceCacheBusting 
+      ? `/api/placeholder/600/600?cb=${Date.now()}`
+      : '/api/placeholder/600/600'
+    );
+  
+  const result = {
+    processedImages,
+    processedImagePaths,
+    primaryImage
+  };
+  
+  console.log('✅ SOLUTION DÉFINITIVE - Images traitées:', {
+    productId: product.id,
+    processedImagesCount: processedImages.length,
+    processedImagePathsCount: 0, // TOUJOURS 0
+    primaryImage: primaryImage.substring(0, 80) + '...',
+    conflictsAvoided: true
+  });
+  
+  return result;
 }
 
 // ===== FONCTIONS UTILITAIRES POUR LES STATISTIQUES MULTI-CATÉGORIES =====
@@ -1333,3 +1521,6 @@ export async function getCategoryDistributionStats(): Promise<{
     };
   }
 }
+
+
+

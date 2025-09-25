@@ -1,4 +1,4 @@
-// next.config.ts - Compatible Next.js 15
+// next.config.ts - Compatible Next.js 15 avec REGEX CORRIGÉE
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -52,14 +52,13 @@ webpack: (config, { dev }) => {
         minSize: 20000,
         maxSize: 200000,
         cacheGroups: {
-          // ✅ MODIFICATION: UN SEUL CHUNK VENDOR
           vendor: {
             test: /[\\/]node_modules[\\/]/,
-            name: 'vendors', // ← Nom fixe au lieu de généré
+            name: 'vendors',
             priority: 10,
             chunks: 'all',
             enforce: true,
-            reuseExistingChunk: true, // ← Ajout important
+            reuseExistingChunk: true,
           },
           common: {
             name: 'common',
@@ -80,9 +79,51 @@ webpack: (config, { dev }) => {
   return config;
 },
 
-  // Redirections pour compatibilité ou migration d'URLs
+  // ✅ SOLUTION CORRIGÉE : Redirections pour corriger les images
   async rewrites() {
     return [
+      // ✅ REGEX CORRIGÉE POUR NEXT.JS
+      {
+        source: '/products/:filename*',
+        has: [
+          {
+            type: 'header',
+            key: 'accept',
+            value: '(.*image.*)',
+          },
+        ],
+        destination: '/images/products/:filename*',
+      },
+      // Alternative plus simple - intercepter les extensions d'images
+      {
+        source: '/products/:filename*.jpg',
+        destination: '/images/products/:filename*.jpg',
+      },
+      {
+        source: '/products/:filename*.jpeg',
+        destination: '/images/products/:filename*.jpeg',
+      },
+      {
+        source: '/products/:filename*.png',
+        destination: '/images/products/:filename*.png',
+      },
+      {
+        source: '/products/:filename*.webp',
+        destination: '/images/products/:filename*.webp',
+      },
+      {
+        source: '/products/:filename*.avif',
+        destination: '/images/products/:filename*.avif',
+      },
+      {
+        source: '/products/:filename*.gif',
+        destination: '/images/products/:filename*.gif',
+      },
+      {
+        source: '/products/:filename*.svg',
+        destination: '/images/products/:filename*.svg',
+      },
+      
       // Proxy pour les images placeholder
       {
         source: '/api/placeholder/:size*',
@@ -104,12 +145,12 @@ webpack: (config, { dev }) => {
       {
         source: '/produit/:slug*',
         destination: '/products/:slug*',
-        permanent: true, // 308
+        permanent: true,
       },
       {
         source: '/produits/:slug*',
         destination: '/products/:slug*',
-        permanent: true, // 308
+        permanent: true,
       },
     ];
   },
@@ -140,7 +181,7 @@ webpack: (config, { dev }) => {
         ],
       },
       {
-        // Cache très long pour les assets Next.js (sans X-Content-Type-Options)
+        // Cache très long pour les assets Next.js
         source: '/_next/static/:path*',
         headers: [
           {
@@ -159,6 +200,16 @@ webpack: (config, { dev }) => {
           },
         ],
       },
+      {
+        // Headers spécifiques pour les images redirigées
+        source: '/images/products/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, stale-while-revalidate=3600',
+          },
+        ],
+      },
     ];
   },
 
@@ -168,7 +219,7 @@ webpack: (config, { dev }) => {
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
-  // Fonctionnalités expérimentales pour l'optimisation (corrigées pour Next.js 15)
+  // Fonctionnalités expérimentales pour l'optimisation
   experimental: {
     // Optimise les imports de packages
     optimizePackageImports: [

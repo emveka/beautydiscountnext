@@ -107,7 +107,6 @@ const lissagesSubItems: SubMenuItem[] = [
   { label: "Lissage Brésilien", href: "/categories/lissages/lissage-bresilien" },
   { label: "Lissage au Tanin", href: "/categories/lissages/lissage-au-tanin" },
   { label: "Kits Mini Lissage", href: "/categories/lissages/kits-mini-lissage" },
-  { label: "Botox Capillaire", href: "/categories/lissages/botox-capillaire" },
   { label: "Lisseurs", href: "/categories/lissages/lisseurs" },
   { label: "Pack Lissages", href: "/categories/lissages/pack-lissages" },
 ];
@@ -115,9 +114,10 @@ const lissagesSubItems: SubMenuItem[] = [
 // SOINS CAPILLAIRES - Sous-catégories
 const soinsCapillairesSubItems: SubMenuItem[] = [
   { label: "Shampoings", href: "/categories/soins-capillaires/shampoings" },
-  { label: "Masques Réparateur", href: "/categories/soins-capillaires/masques" },
+  { label: "Masques Capillaires", href: "/categories/soins-capillaires/masques-capillaires" },
   { label: "Huiles & Sérums", href: "/categories/soins-capillaires/huiles-serums" },
   { label: "Sprays Protecteurs", href: "/categories/soins-capillaires/sprays-protecteurs" },
+  { label: "Botox Capillaire", href: "/categories/lissages/botox-capillaire" },
   { label: "Packs Soins Capillaires", href: "/categories/soins-capillaires/packs-soins" },
 ];
 
